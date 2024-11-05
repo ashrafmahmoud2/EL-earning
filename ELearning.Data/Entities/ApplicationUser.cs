@@ -8,12 +8,18 @@ using System.Threading.Tasks;
 namespace ELearning.Data.Entities;
 public class ApplicationUser : IdentityUser
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    //Password:P@ssword123
+    public ApplicationUser()
+    {
+        Id = Guid.CreateVersion7().ToString();
+        SecurityStamp = Guid.CreateVersion7().ToString();
+    }
 
-    public string? RefreshToken { get; set; }
-    public DateTime RefreshTokenExpiryTime { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public bool IsDisabled { get; set; }
+
+    public List<RefreshToken> RefreshTokens { get; set; } = [];
 
 }
+

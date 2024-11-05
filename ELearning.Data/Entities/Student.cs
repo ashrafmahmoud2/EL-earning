@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ELearning.Data.Entities;
-public class Student
+public class Student:AuditableEntity
 {
     public Guid Id { get; set; }
     public string UserId { get; set; }

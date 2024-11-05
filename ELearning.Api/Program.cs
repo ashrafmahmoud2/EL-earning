@@ -8,6 +8,8 @@ using ELearning.Core.MediatrHandlers.Student.Queries.GetStudentById;
 using ELearning.Infrastructure.Base;
 using AutoMapper;
 using ELearning.Core;
+using Hangfire;
+using HangfireBasicAuthenticationFilter;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddServiceDependencies();
+builder.Services.AddServiceDependencies(builder.Configuration);
 builder.Services.AddCoreDependencies();
 builder.Services.AddInfrastructureDependencies();
 
@@ -37,6 +39,20 @@ builder.Services.AddMediatR(typeof(GetStudentByIdQuery).Assembly);
 
 var app = builder.Build();
 
+
+
+//app.UseHangfireDashboard("/jobs", new DashboardOptions
+//{
+//    Authorization =
+//    [
+//        new HangfireCustomBasicAuthenticationFilter
+//        {
+//            User = app.Configuration.GetValue<string>("HangfireSettings:Username"),
+//            Pass = app.Configuration.GetValue<string>("HangfireSettings:Password")
+//        }
+//    ],
+//    DashboardTitle = "Survey Basket Dashboard",
+//});
 
 app.UseSwagger();
 app.UseSwaggerUI();
