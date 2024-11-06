@@ -4,7 +4,6 @@ using ELearning.Data.Authentication.Jwt;
 using ELearning.Data.Contracts.Auth;
 using ELearning.Data.Entities;
 using ELearning.Data.Errors;
-using ELearning.Data.Helpers;
 using ELearning.Infrastructure;
 using ELearning.Service.IService;
 using Hangfire;
