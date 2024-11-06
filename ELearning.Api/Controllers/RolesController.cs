@@ -1,12 +1,5 @@
-﻿using ELearning.Data.Authentication.Filters;
-using ELearning.Data.Authentication;
-using ELearning.Data.Contracts.Roles;
-using ELearning.Service.IService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ELearning.Data.Abstractions.ResultPattern;
+﻿namespace ELearning.Api.Controllers;
 
-namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class RolesController(IRoleService roleService) : ControllerBase

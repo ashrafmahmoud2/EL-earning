@@ -1,11 +1,5 @@
-﻿using ELearning.Data.Abstractions.Extensions;
-using ELearning.Data.Abstractions.ResultPattern;
-using ELearning.Data.Contracts.Users;
-using ELearning.Service.IService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿namespace ELearning.Api.Controllers;
 
-namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class AccountController(IUserService userService) : ControllerBase

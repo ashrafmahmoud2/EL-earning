@@ -1,15 +1,10 @@
-﻿using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MediatR;
-using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
+﻿using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
 using ELearning.Core.MediatrHandlers.Student.Queries.GetStudentById;
 using ELearning.Api.Base;
 using ELearning.Core.MediatrHandlers.Student.Commands.UpdateStudent;
-using Microsoft.AspNetCore.Authorization;
-
 
 namespace ELearning.Api.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
 public class StudentsController(IMediator mediator) : ControllerBase

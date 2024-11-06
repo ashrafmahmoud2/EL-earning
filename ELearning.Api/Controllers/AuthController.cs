@@ -1,16 +1,10 @@
-﻿using ELearning.Data.Abstractions.ResultPattern;
-using ELearning.Data.Contracts.Auth;
-using ELearning.Service.IService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using ELearning.Data.Contracts.Auth;
-using RegisterRequest = ELearning.Data.Contracts.Auth.RegisterRequest;
+﻿using RegisterRequest = ELearning.Data.Contracts.Auth.RegisterRequest;
 using ResendConfirmationEmailRequest = ELearning.Data.Contracts.Auth.ResendConfirmationEmailRequest;
 using ResetPasswordRequest = ELearning.Data.Contracts.Auth.ResetPasswordRequest;
 using LoginRequest = ELearning.Data.Contracts.Auth.LoginRequest;
 
 namespace ELearning.Api.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
 public class AuthController(IAuthService authService, ILogger<AuthController> logger) : ControllerBase

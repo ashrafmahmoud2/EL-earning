@@ -1,11 +1,4 @@
-﻿using ELearning.Data.Authentication.Filters;
-using ELearning.Data.Authentication;
-using ELearning.Data.Contracts.Users;
-using ELearning.Service.IService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ELearning.Data.Abstractions.ResultPattern;
-using Microsoft.AspNetCore.Authorization;
+﻿
 
 namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
