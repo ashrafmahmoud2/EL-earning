@@ -2,14 +2,21 @@
 using ELearning.Core.MediatrHandlers.Student.Queries.GetStudentById;
 using ELearning.Api.Base;
 using ELearning.Core.MediatrHandlers.Student.Commands.UpdateStudent;
+using ELearning.Infrastructure.Base;
+using ELearning.Service.IService;
+using ELearning.Service.Service;
+using ELearning.Data.Contracts.Students;
+using System.Threading;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class StudentsController(IMediator mediator) : ControllerBase
+public class StudentsController(IStudentService studentService) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
+    private readonly IStudentService _studentService = studentService;
+
+
 
     /// <summary>
     /// Gets a student by id.
@@ -38,11 +45,12 @@ public class StudentsController(IMediator mediator) : ControllerBase
     /// </remarks>
     /// <response code="200">Returns the requested student</response>
     /// <response code="404">If the student is not found</response>
-    [HttpGet(template: "{id}")]
-    public async Task<IActionResult> GetStudentById([FromRoute] Guid id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetStudentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetStudentByIdQuery { Id = id });
-        return Ok(result);
+        var student = await _studentService.GetStudentByIdAsync(id);
+
+        return student.IsSuccess ? Ok(student.Value) : student.ToProblem();
     }
 
     /// <summary>
@@ -78,11 +86,20 @@ public class StudentsController(IMediator mediator) : ControllerBase
     /// 
     /// </remarks>
     /// <response code="200">Returns the list of students</response>
-    [HttpGet]
+    [HttpGet("")]
     public async Task<IActionResult> GetAllStudents()
     {
-        var result = await _mediator.Send(new GetAllStudentsQuery());
-        return Ok(result);
+        var student = await _studentService.GetAllStudentsAsync();
+
+        return Ok(student);
+    }
+
+    [HttpPut("Toggle_status{id}")]
+    public async Task<IActionResult> ToggleStatusStudent([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var Instructor = await _studentService.ToggleStatusAsync(id, cancellationToken);
+
+        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
     }
 
     /// <summary>
@@ -121,13 +138,11 @@ public class StudentsController(IMediator mediator) : ControllerBase
     /// <response code="400">If the item is null or invalid</response>
     /// <response code="404">If the student is not found</response>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateStudent(Guid id, [FromBody] UpdateStudentCommand command)
+    public async Task<IActionResult> UpdateStudent([FromRoute]Guid id, [FromBody] StudentRequest request,CancellationToken cancellationToken)
     {
-        if (id != command.Id)
-            return BadRequest("The ID in the URL does not match the ID in the request body.");
+        var Instructor = await _studentService.UpdateStudentAsync(id,request, cancellationToken);
 
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
     }
 
 
