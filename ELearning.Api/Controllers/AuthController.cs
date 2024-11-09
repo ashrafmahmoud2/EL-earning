@@ -2,6 +2,8 @@
 using ResendConfirmationEmailRequest = ELearning.Data.Contracts.Auth.ResendConfirmationEmailRequest;
 using ResetPasswordRequest = ELearning.Data.Contracts.Auth.ResetPasswordRequest;
 using LoginRequest = ELearning.Data.Contracts.Auth.LoginRequest;
+using ELearning.Data.Enums;
+using ELearning.Data.Contracts.Instrctors;
 
 namespace ELearning.Api.Controllers;
 
@@ -22,7 +24,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
     }
 
-    [HttpPost("refresh")]
+     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
         var authResult = await _authService.GetRefreshTokenAsync(request.Token, request.RefreshToken, cancellationToken);
@@ -38,13 +40,22 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
 
-    [HttpPost("register")]
+   
+    [HttpPost("register-student")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
-        var result = await _authService.RegisterAsync(request, cancellationToken);
-
+        var result = await _authService.RegisterAsync(UserRole.Student,request, null, cancellationToken);
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
+
+    [HttpPost("register-instructor")]
+    public async Task<IActionResult> RegisterInstructor([FromBody] RegisterInstructorRequest request , CancellationToken cancellationToken)
+    {
+        var result = await _authService.RegisterAsync(UserRole.Instructor,request.RegisterRequest,request.InstructorRequest, cancellationToken);
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+
+
 
     [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request, CancellationToken cancellationToken)

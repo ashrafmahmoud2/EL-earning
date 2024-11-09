@@ -33,6 +33,7 @@ public static class ServiceDependencies
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<IInstructorService, InstructorService>();
 
         services.AddMapsterConfig();
         services.AddAuthConfig(configuration);

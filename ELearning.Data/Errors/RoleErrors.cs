@@ -17,4 +17,8 @@ public record RoleErrors
 
     public static readonly Error DuplicatedRole =
         new("Role.DuplicatedRole", "Another role with the same name is already exists", StatusCodes.Status409Conflict);
+
+    public static readonly Error RoleAssignmentError =
+       new("Role.RoleAssignmentError", "Failed to assign role to user", StatusCodes.Status400BadRequest);
 }
+

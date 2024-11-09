@@ -2,7 +2,10 @@
 using ELearning.Data.Abstractions.ResultPattern;
 using ELearning.Data.Authentication.Jwt;
 using ELearning.Data.Contracts.Auth;
+using ELearning.Data.Contracts.Instrctors;
+using ELearning.Data.Contracts.Students;
 using ELearning.Data.Entities;
+using ELearning.Data.Enums;
 using ELearning.Data.Errors;
 using ELearning.Infrastructure;
 using ELearning.Service.IService;
@@ -29,7 +32,9 @@ public class AuthService(
     ILogger<AuthService> logger,
     IEmailService emailService,
     IHttpContextAccessor httpContextAccessor,
-    ApplicationDbContext context) : IAuthService
+    ApplicationDbContext context,
+    IStudentService studentService,
+    IInstructorService instructorService) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -38,7 +43,8 @@ public class AuthService(
     private readonly IEmailService _emailService = emailService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly ApplicationDbContext _context = context;
-
+    private readonly IStudentService _studentService = studentService;
+    private readonly IInstructorService _instructorService = instructorService;
     private readonly int _refreshTokenExpiryDays = 14;
 
     public async Task<Result<AuthResponse>> GetTokenAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -150,33 +156,47 @@ public class AuthService(
         return Result.Success();
     }
 
-    public async Task<Result> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> RegisterAsync(string role,RegisterRequest request, InstructorRequest? instructorRequest = null, CancellationToken cancellationToken = default)
     {
-        var emailIsExists = await _userManager.Users.AnyAsync(x => x.Email == request.Email, cancellationToken);
-
-        if (emailIsExists)
+        if (await _userManager.Users.AnyAsync(x => x.Email == request.Email, cancellationToken))
             return Result.Failure(UserErrors.DuplicatedEmail);
 
         var user = request.Adapt<ApplicationUser>();
         user.UserName = request.Email;
 
         var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+            return Result.Failure(new Error(result.Errors.First().Code, result.Errors.First().Description, StatusCodes.Status400BadRequest));
 
-        if (result.Succeeded)
+        var roleAssignmentResult = await _userManager.AddToRoleAsync(user, role);
+        if (!roleAssignmentResult.Succeeded)
+            return Result.Failure(RoleErrors.RoleAssignmentError);
+
+        Result addResult;
+        if (role == UserRole.Student)
         {
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-            _logger.LogInformation("Confirmation code: {code}", code);
-
-            await SendConfirmationEmail(user, code);
-
-            return Result.Success();
+            addResult = await _studentService.CreateStudentAsync(user, cancellationToken);
+        }
+        else if (role == UserRole.Instructor && instructorRequest != null)
+        {
+            addResult = await _instructorService.CreateInstructorAsync(user, instructorRequest, cancellationToken);
+        }
+        else
+        {
+            return Result.Failure(new Error("InvalidRoleOrRequest", "Invalid role or missing instructor details", StatusCodes.Status400BadRequest));
         }
 
-        var error = result.Errors.First();
 
-        return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+        if (addResult.IsFailure)
+            return Result.Failure (new Error(addResult.Error.Code , addResult.Error.Description,StatusCodes.Status500InternalServerError));
+
+
+        var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        _logger.LogInformation("Confirmation code generated for email verification.");
+
+        //   await SendConfirmationEmail(user, emailToken );
+
+        return Result.Success();
     }
 
     public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
@@ -187,28 +207,26 @@ public class AuthService(
         if (user.EmailConfirmed)
             return Result.Failure(UserErrors.DuplicatedConfirmation);
 
-        var code = request.Code;
-
+        string decodedCode;
         try
         {
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
         }
         catch (FormatException)
         {
             return Result.Failure(UserErrors.InvalidCode);
         }
 
-        var result = await _userManager.ConfirmEmailAsync(user, code);
+        var updatedRequest = request with { Code = decodedCode };
 
-        if (result.Succeeded)
+        var result = await _userManager.ConfirmEmailAsync(user, updatedRequest.Code);
+        if (!result.Succeeded)
         {
-            await _userManager.AddToRoleAsync(user, DefaultRoles.Member.Name);
-            return Result.Success();
+            var error = result.Errors.First();
+            return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
         }
 
-        var error = result.Errors.First();
-
-        return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+        return Result.Success();
     }
 
     public async Task<Result> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request)
@@ -279,7 +297,7 @@ public class AuthService(
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     }
 
-    private async Task SendConfirmationEmail(ApplicationUser user, string code)
+    private async Task SendConfirmationEmail(ApplicationUser user, string emailToken)
     {
         var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
 
@@ -287,7 +305,7 @@ public class AuthService(
           templateModel: new Dictionary<string, string>
           {
                 { "{{name}}", user.FirstName },
-                    { "{{action_url}}", $"{origin}/auth/emailConfirmation?userId={user.Id}&code={code}" }
+                    { "{{action_url}}", $"{origin}/auth/emailConfirmation?userId={user.Id}&code={emailToken }" }
           }
       );
 
