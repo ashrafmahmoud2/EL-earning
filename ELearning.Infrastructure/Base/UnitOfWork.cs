@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ELearning.Data.Entities;
 using Microsoft.EntityFrameworkCore.Storage;
+
 
 
 namespace ELearning.Infrastructure.Base;
@@ -14,13 +16,17 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private bool _disposed = false;
     private readonly Dictionary<Type, object> _repositories = new();
 
-    
-   
+    IBaseRepository<Student> Students { get; }
+
 
     public UnitOfWork(ApplicationDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+
+      //  Students =new 
     }
+
+
 
     public IGenericRepository<T> Repository<T>() where T : class
     {
@@ -106,7 +112,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
                 }
 
                 _context.Dispose();
-                _transaction?.Dispose();
+_transaction?.Dispose();
             }
 
             _disposed = true;

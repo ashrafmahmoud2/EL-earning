@@ -14,7 +14,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet = _context.Set<T>();
     }
 
-    public async Task<T> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<T> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _dbSet.FindAsync(new object[] { id }, cancellationToken);
     }
@@ -85,6 +85,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         }
 
         return query.Where(predicate);
+    }
+
+    public async Task<T> FirstOrDefaultAsync(
+        Expression<Func<T, bool>> predicate,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<T> query = _context.Set<T>().Where(predicate);
+
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
 
@@ -165,5 +180,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await query.ToListAsync(cancellationToken);
     }
 
-  
+
+    public void Attach(T entity)
+    {
+        _context.Set<T>().Attach(entity);
+    }
 }

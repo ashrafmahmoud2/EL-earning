@@ -34,6 +34,9 @@ public static class ServiceDependencies
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IInstructorService, InstructorService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ICourseService, CourseService>();
+
 
         services.AddMapsterConfig();
         services.AddAuthConfig(configuration);

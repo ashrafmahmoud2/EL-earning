@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace ELearning.Infrastructure.Base;
 public interface IGenericRepository<T> where T : class
 {
     // CRUD Operations
-    Task<T> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<T> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default);
     Task AddAsync(T entity, CancellationToken cancellationToken = default);
     Task AddMultipleAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
@@ -29,6 +23,10 @@ public interface IGenericRepository<T> where T : class
         Expression<Func<T, bool>> predicate,
         Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null);
 
+    Task<T> FirstOrDefaultAsync(
+      Expression<Func<T, bool>> predicate,
+      Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null,
+      CancellationToken cancellationToken = default);
 
     Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
     Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
@@ -43,8 +41,11 @@ public interface IGenericRepository<T> where T : class
         CancellationToken cancellationToken = default);
 
     // Specification Pattern
-    //Task<IEnumerable<T>> FindBySpecificationAsync(
-    //    ISpecification<T> specification,
-    //    CancellationToken cancellationToken = default);
+    Task<IEnumerable<T>> FindBySpecificationAsync(
+        ISpecification<T> specification,
+        CancellationToken cancellationToken = default);
 
+
+    // Attach Operation
+    void Attach(T entity);
 }

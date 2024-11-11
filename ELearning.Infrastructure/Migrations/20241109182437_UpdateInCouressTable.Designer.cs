@@ -4,6 +4,7 @@ using ELearning.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearning.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241109182437_UpdateInCouressTable")]
+    partial class UpdateInCouressTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,8 +178,9 @@ namespace ELearning.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("CategoryId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedById")
                         .IsRequired()
@@ -189,13 +193,14 @@ namespace ELearning.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("InstructorId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("InstructorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.PrimitiveCollection<string>("LearningObjectives")
+                    b.Property<string>("LearningObjectives")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -203,7 +208,7 @@ namespace ELearning.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("Prerequisites")
+                    b.Property<string>("Prerequisites")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -220,9 +225,9 @@ namespace ELearning.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan?>("TotalTime")
+                    b.Property<TimeSpan>("TotalTime")
                         .HasColumnType("time");
 
                     b.Property<string>("TrailerVideoUrl")
@@ -237,14 +242,7 @@ namespace ELearning.Infrastructure.Migrations
 
                     b.HasKey("CourseId");
 
-                    b.HasIndex("CategoryId");
-
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("InstructorId");
-
-                    b.HasIndex("Title")
-                        .IsUnique();
 
                     b.HasIndex("UpdatedById");
 
@@ -256,10 +254,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<Guid>("InstructorId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Biography")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedById")
                         .IsRequired()
@@ -286,6 +280,10 @@ namespace ELearning.Infrastructure.Migrations
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("biography")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("InstructorId");
 
@@ -496,21 +494,9 @@ namespace ELearning.Infrastructure.Migrations
 
             modelBuilder.Entity("ELearning.Data.Entities.Course", b =>
                 {
-                    b.HasOne("ELearning.Data.Entities.Category", "Category")
-                        .WithMany("Courses")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ELearning.Data.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.Instructor", "Instructor")
-                        .WithMany("Courses")
-                        .HasForeignKey("InstructorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -518,11 +504,7 @@ namespace ELearning.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
-                    b.Navigation("Category");
-
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("Instructor");
 
                     b.Navigation("UpdatedBy");
                 });
@@ -622,16 +604,6 @@ namespace ELearning.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.Category", b =>
-                {
-                    b.Navigation("Courses");
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.Instructor", b =>
-                {
-                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }
