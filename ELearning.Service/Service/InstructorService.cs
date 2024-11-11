@@ -75,8 +75,8 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         var Instructor = new Instructor()
         {
             User = user!,
-            Expertise = request.expertise,
-            biography = request.biography
+            Expertise = request.Expertise,
+            Biography = request.Biography
 
 
         };
@@ -120,8 +120,8 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         instrcotr.User.LastName = request.LastName;
         instrcotr.User.Email = request.Email;
         instrcotr.User.UserName = request.Email;
-        instrcotr.biography = request.biography;
-        instrcotr.Expertise = request.expertise;
+        instrcotr.Biography = request.Biography;
+        instrcotr.Expertise = request.Expertise;
 
         await _unitOfWork.Repository<Instructor>().UpdateAsync(instrcotr, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);

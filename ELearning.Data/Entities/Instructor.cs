@@ -8,11 +8,13 @@ public class Instructor : AuditableEntity
 
     public string Expertise  { get; set; } = String.Empty;
 
-    public string biography { get; set; } = String.Empty;
+    public string Biography { get; set; } = String.Empty;
 
     public bool IsActive { get; set; } = true;
 
     public DateTime HireDate { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Course> Courses { get; set; } = [];
 
 }
 
