@@ -12,3 +12,4 @@ public interface ICategoryService
     Task<Result<CategoryResponse>> UpdateCategoryAsync(Guid id, CategoryRequest  request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
 }
+

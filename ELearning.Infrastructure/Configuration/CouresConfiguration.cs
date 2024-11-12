@@ -23,7 +23,29 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasOne(c => c.Category)
             .WithMany(i => i.Courses)
             .HasForeignKey(c => c.CategoryId);
+    }
 
+}
+
+public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
+{
+    public void Configure(EntityTypeBuilder<Enrollment> builder)
+    {
+        builder.HasKey(e => e.EnrollmentId);
+
+        builder.HasOne(c => c.course)
+            .WithMany(x => x.Enrollments)
+            .HasForeignKey(x => x.CourseId);
+
+
+
+
+        builder.HasOne(c => c.student)
+            .WithMany(x => x.Enrollments)
+            .HasForeignKey(x => x.StudentId);
+        
+
+            
     }
 
 }

@@ -1,22 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Reflection;
 
-namespace ELearning.Data.Helpers;
-public static class EmailBodyBuilder
+
+public class EmailBodyBuilder
 {
-    public static string GenerateEmailBody(string template, Dictionary<string, string> templateModel)
+    public static string GenerateEmailBody(string templateName, Dictionary<string, string> templateModel)
     {
-        var templatePath = $"{Directory.GetCurrentDirectory()}/Templates/{template}.html";
-        var streamReader = new StreamReader(templatePath);
-        var body = streamReader.ReadToEnd();
-        streamReader.Close();
+        // Get the path to the directory where the assembly is located
+        var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        foreach (var item in templateModel)
-            body = body.Replace(item.Key, item.Value);
+        // Build the path to the template
+        var templatePath = Path.Combine(assemblyLocation, "Templates", templateName);
 
-        return body;
+        if (!File.Exists(templatePath))
+        {
+            throw new FileNotFoundException($"Template not found: {templatePath}");
+        }
+
+        // Load the template and replace placeholders with values from templateModel
+        var templateContent = File.ReadAllText(templatePath);
+        foreach (var model in templateModel)
+        {
+            templateContent = templateContent.Replace($"{{{{{model.Key}}}}}", model.Value);
+        }
+
+        return templateContent;
     }
 }

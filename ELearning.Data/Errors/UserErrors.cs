@@ -42,6 +42,7 @@ public record UserErrors
     public static readonly Error InvalidRoles =
         new("Role.InvalidRoles", "Invalid roles", StatusCodes.Status400BadRequest);
 
-
+    public static readonly Error DuplicatedRole =
+        new("User.DuplicatedRole", "User has this role oredy", StatusCodes.Status401Unauthorized);
 }
 

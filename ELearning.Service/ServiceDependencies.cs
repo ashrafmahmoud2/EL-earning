@@ -36,6 +36,12 @@ public static class ServiceDependencies
         services.AddScoped<IInstructorService, InstructorService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IEnrollmentService, EnrollmentService>();
+        services.AddScoped<ISectionService, SectionService>();
+        services.AddScoped<ILessonService, LessonService>();
+        services.AddScoped<IQuizService, QuizService>();
+        services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IPaymentService, PaymentService>();
 
 
         services.AddMapsterConfig();
@@ -131,3 +137,7 @@ public static class ServiceDependencies
 
 
 }
+
+
+
+
