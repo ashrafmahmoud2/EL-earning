@@ -4,6 +4,7 @@ using ELearning.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearning.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241111195705_AddPaymentTable")]
+    partial class AddPaymentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,9 +320,8 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
@@ -451,15 +453,15 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CreatedById")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid>("EnrollmentId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -471,6 +473,9 @@ namespace ELearning.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("UpdatedById")
                         .HasColumnType("nvarchar(450)");
 
@@ -479,9 +484,11 @@ namespace ELearning.Infrastructure.Migrations
 
                     b.HasKey("PaymentId");
 
+                    b.HasIndex("CourseId");
+
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("EnrollmentId");
+                    b.HasIndex("StudentId");
 
                     b.HasIndex("UpdatedById");
 
@@ -915,15 +922,21 @@ namespace ELearning.Infrastructure.Migrations
 
             modelBuilder.Entity("ELearning.Data.Entities.Payment", b =>
                 {
+                    b.HasOne("ELearning.Data.Entities.Course", "Course")
+                        .WithMany("Payments")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ELearning.Data.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ELearning.Data.Entities.Enrollment", "Enrollment")
+                    b.HasOne("ELearning.Data.Entities.Student", "Student")
                         .WithMany("Payments")
-                        .HasForeignKey("EnrollmentId")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -931,9 +944,11 @@ namespace ELearning.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
+                    b.Navigation("Course");
+
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Enrollment");
+                    b.Navigation("Student");
 
                     b.Navigation("UpdatedBy");
                 });
@@ -1071,12 +1086,9 @@ namespace ELearning.Infrastructure.Migrations
                 {
                     b.Navigation("Enrollments");
 
-                    b.Navigation("sections");
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.Enrollment", b =>
-                {
                     b.Navigation("Payments");
+
+                    b.Navigation("sections");
                 });
 
             modelBuilder.Entity("ELearning.Data.Entities.Instructor", b =>
@@ -1099,6 +1111,8 @@ namespace ELearning.Infrastructure.Migrations
             modelBuilder.Entity("ELearning.Data.Entities.Student", b =>
                 {
                     b.Navigation("Enrollments");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

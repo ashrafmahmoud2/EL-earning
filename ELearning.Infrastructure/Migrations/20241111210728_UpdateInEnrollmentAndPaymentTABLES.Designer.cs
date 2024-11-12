@@ -4,6 +4,7 @@ using ELearning.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearning.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241111210728_UpdateInEnrollmentAndPaymentTABLES")]
+    partial class UpdateInEnrollmentAndPaymentTABLES
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -317,9 +320,8 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
@@ -451,6 +453,9 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CreatedById")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -478,6 +483,8 @@ namespace ELearning.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("PaymentId");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("CreatedById");
 
@@ -915,13 +922,19 @@ namespace ELearning.Infrastructure.Migrations
 
             modelBuilder.Entity("ELearning.Data.Entities.Payment", b =>
                 {
+                    b.HasOne("ELearning.Data.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ELearning.Data.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ELearning.Data.Entities.Enrollment", "Enrollment")
+                    b.HasOne("ELearning.Data.Entities.Enrollment", "Enrollments")
                         .WithMany("Payments")
                         .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -931,9 +944,11 @@ namespace ELearning.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
+                    b.Navigation("Course");
+
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("Enrollment");
+                    b.Navigation("Enrollments");
 
                     b.Navigation("UpdatedBy");
                 });
