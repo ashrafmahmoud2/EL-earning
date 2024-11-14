@@ -11,6 +11,7 @@
      public Section Section { get; set; } = default!;
      public ICollection<Quiz> Quizzes { get; set; } = [];
     public ICollection<Document> Documents { get; set; } = [];
+    public ICollection<Comment> Comments { get; set; } = [];
  }
 
 

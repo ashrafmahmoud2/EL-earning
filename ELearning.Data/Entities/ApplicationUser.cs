@@ -20,6 +20,7 @@ public class ApplicationUser : IdentityUser
     public bool IsDisabled { get; set; }
 
     public List<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<Comment> Comments { get; set; } = [];
 
 
 }

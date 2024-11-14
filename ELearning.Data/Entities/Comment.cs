@@ -7,6 +7,12 @@ public class Comment : AuditableEntity
     public string CommentText { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public Guid LessonId { get; set; }
+    public DateTime CommentedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedCommentedAt { get; set; }
+    public string ApplicationUserId { get; set; }=string.Empty;
+    public bool IsEdited { get; set; } = false;
+
+    public ApplicationUser ApplicationUser { get; set; } = default!;
     public Lesson Lesson { get; set; } = default!;
 }
 

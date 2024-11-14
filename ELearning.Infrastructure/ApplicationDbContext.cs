@@ -32,7 +32,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<QuizAttempt> QuizAttempts { get; set; }
     public DbSet<Document> Documents { get; set; }
     public DbSet<Payment> Payment { get; set; }
-    //public DbSet<Comment> Comments { get; set; }
+    
+    public DbSet<Comment> Comments { get; set; }
     //public DbSet<Progrss> Progrss { get; set; } include the status of enrollment enum EnrollmentStatus
     //public DbSet<Result> Result { get; set; }  Make Result In Payment Or make Result Controler like srvay baskt
 
