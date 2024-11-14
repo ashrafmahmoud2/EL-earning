@@ -7,6 +7,7 @@ using Mapster;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.Comment;
 using ELearning.Data.Errors;
+using System.Xml.Linq;
 namespace ELearning.Service.Service;
 
 public class CommentService : BaseRepository<Comment>, ICommentService
@@ -95,6 +96,17 @@ public class CommentService : BaseRepository<Comment>, ICommentService
 
         return Result.Success();
     }
+
+    public async Task<Result<int>> CountCommentsForLesson(Guid lessonId, CancellationToken cancellationToken = default)
+    {
+        var count = await _context.Comments
+            .Where(x => x.LessonId == lessonId)
+            .CountAsync();
+
+        return Result.Success(count);
+    }
+
+
 }
 
 

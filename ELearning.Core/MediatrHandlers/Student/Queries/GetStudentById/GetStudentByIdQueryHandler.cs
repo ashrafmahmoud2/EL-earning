@@ -17,11 +17,14 @@ public class GetStudentByIdQueryHandler : IRequestHandler<GetStudentByIdQuery, A
 
     public async Task<ApiResponse<StudentDto>> Handle(GetStudentByIdQuery request, CancellationToken cancellationToken)
     {
-        var student = await _studentService.GetStudentByIdAsync(request.Id, cancellationToken);
-        if (student == null)
-            return _responseHandler.NotFound<StudentDto>($"Student with ID {request.Id} not found.");
+        //var student = await _studentService.GetStudentByIdAsync(request.Id, cancellationToken);
+        //if (student == null)
+        //    return _responseHandler.NotFound<StudentDto>($"Student with ID {request.Id} not found.");
 
-        var studentDto = _mapper.Map<StudentDto>(student);
-        return _responseHandler.Success(studentDto);
+        //var studentDto = _mapper.Map<StudentDto>(student);
+        //return _responseHandler.Success(studentDto);
+
+        return null
+            ;
     }
 }

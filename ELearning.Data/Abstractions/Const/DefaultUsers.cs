@@ -1,0 +1,16 @@
+﻿namespace ELearning.Data.Abstractions.Const;
+
+public static class DefaultUsers
+{
+
+    public partial class Admin
+    {
+        //To create a user when the project opens, add default data in user configurations in UserConfiguration.cs
+        public const string Id = "0191a4b6-c4fc-752e-9d95-40b30fa7a9b6";
+        public const string Email = "admin@survey-basket.com";
+        public const string PasswordHash = "AQAAAAIAAYagAAAAEKRku5u6K325Irl1Utujiuil/WUhjTvShS9mJLXxO+2v/GKrMT1Ofhdp/0taFUO2bA==";//Password:P@ssword123
+        public const string SecurityStamp = "55BF92C9EF0249CDA210D85D1A851BC9";
+        public const string ConcurrencyStamp = "0191a4b6-c4fc-752e-9d95-40b42a925b8e";
+    }
+}
+

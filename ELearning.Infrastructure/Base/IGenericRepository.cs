@@ -14,6 +14,9 @@ public interface IGenericRepository<T> where T : class
     Task RemoveAsync(T entity, CancellationToken cancellationToken = default);
     Task RemoveMultipleAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
+
+    IQueryable<T> Where(Expression<Func<T, bool>> predicate);
+
     // Query Operations
     Task<IEnumerable<T>> FindAsync(
         Expression<Func<T, bool>> predicate,

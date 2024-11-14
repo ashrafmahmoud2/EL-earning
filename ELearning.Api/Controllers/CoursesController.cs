@@ -16,6 +16,22 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
 
         return Course.IsSuccess ? Ok(Course.Value) : Course.ToProblem();
     }
+    
+    [HttpGet("get_by_instructor/{id}")]
+    public async Task<IActionResult> GetCourseByinstructorId([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var Course = await _CourseService.GetCourseByinstructorId(id, cancellationToken);
+
+        return Course.IsSuccess ? Ok(Course.Value) : Course.ToProblem();
+    }
+    
+    [HttpGet("get_by_categoryId/{id}")]
+    public async Task<IActionResult> GetCourseBycategoryId([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var Course = await _CourseService.GetCourseBycategoryId(id, cancellationToken);
+
+        return Course.IsSuccess ? Ok(Course.Value) : Course.ToProblem();
+    }
 
 
     [HttpGet("")]
@@ -54,6 +70,33 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
         return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
     }
 
+
+    [HttpGet("counts")]
+    public async Task<IActionResult> CountCoursesWithSectionsAndLessons( CancellationToken cancellationToken)
+    {
+        var result = await _CourseService.GetCourseSectionLessonCounts( cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+
+
+    [HttpGet("enrollment-counts")]
+    public async Task<IActionResult> GetCourseEnrollmentCounts(CancellationToken cancellationToken)
+    {
+        var result = await _CourseService.CountEnrollmentsForCourses(cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+
+    [HttpGet("refude-counts")]
+    public async Task<IActionResult> GetCourserefudeCounts(CancellationToken cancellationToken)
+    {
+        var result = await _CourseService.GetCourseRefundedCountsAsync(cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
 
 
 }

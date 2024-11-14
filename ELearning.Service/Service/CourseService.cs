@@ -1,4 +1,5 @@
-﻿using ELearning.Service.IService;
+﻿
+using ELearning.Service.IService;
 using ELearning.Infrastructure.Base;
 using Microsoft.EntityFrameworkCore;
 using ELearning.Data.Abstractions.ResultPattern;
@@ -7,6 +8,7 @@ using Mapster;
 using ELearning.Data.Entities;
 using ELearning.Data.Contracts.Course;
 using ELearning.Data.Errors;
+using ELearning.Data.Consts;
 namespace ELearning.Service.Service;
 
 public class CourseService : BaseRepository<Course>, ICourseService
@@ -37,6 +39,30 @@ public class CourseService : BaseRepository<Course>, ICourseService
             return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
 
         var courseResponse = course.Adapt<CourseResponse>();
+
+        return Result.Success(courseResponse);
+    }
+    public async Task<Result<CourseResponse>> GetCourseBycategoryId(Guid categoryId, CancellationToken cancellationToken = default)
+    {
+        var coures = await _unitOfWork.Repository<Course>().FindAsync(x => x.CategoryId == categoryId);
+
+
+        if (coures is null)
+            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+
+        var courseResponse = coures.Adapt<CourseResponse>();
+
+        return Result.Success(courseResponse);
+    }
+    public async Task<Result<CourseResponse>> GetCourseByinstructorId(Guid instructorId, CancellationToken cancellationToken = default)
+    {
+        var coures = await _unitOfWork.Repository<Course>().FindAsync(x => x.InstructorId == instructorId);
+
+
+        if (coures is null)
+            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+
+        var courseResponse = coures.Adapt<CourseResponse>();
 
         return Result.Success(courseResponse);
     }
@@ -79,7 +105,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     //need to fix Handling Concurrency Conflicts
     https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=data-annotations
         var course = await _unitOfWork.Repository<Course>()
-                                         .FirstOrDefaultAsync(x=> x.CourseId== id,
+                                         .FirstOrDefaultAsync(x => x.CourseId == id,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
 
         if (course is null)
@@ -112,5 +138,59 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         return Result.Success();
     }
+
+    public async Task<Result<List<CourseSectionLessonCountResponse>>> GetCourseSectionLessonCounts(CancellationToken cancellationToken = default)
+    {
+        var courseSectionLessonCounts = await _context.Courses
+            .Select(course => new CourseSectionLessonCountResponse(
+                course.CourseId,
+                course.sections.Count,
+                course.sections.Select(section => new SectionLessonCountResponse(
+                    section.SectionId,
+                    section.Lessons.Count
+                )).ToList()
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result.Success(courseSectionLessonCounts);
+    }
+   
+    public async Task<Result<List<CourseEnrollmentCountResponse>>> CountEnrollmentsForCourses(CancellationToken cancellationToken = default)
+    {
+        var enrollments = await _unitOfWork.Repository<Enrollment>().GetAllAsync(cancellationToken);
+
+        var courseEnrollmentCounts = enrollments
+            .GroupBy(enrollment => enrollment.CourseId)
+            .Select(group => new CourseEnrollmentCountResponse(
+                group.Key,          // CourseId
+                group.Count()       // Enrollment count
+            ))
+            .ToList();
+
+        return Result.Success(courseEnrollmentCounts);
+    }
+
+    public async Task<Result<List<CourseRefundedCountResponse>>> GetCourseRefundedCountsAsync(CancellationToken cancellationToken = default)
+    {
+        // Fetch all refunded enrollments and include the associated Course
+        var refundedEnrollmentsQuery = _unitOfWork.Repository<Enrollment>()
+            .Find(x => x.Status == EnrollmentStatus.Refunded, include: q => q.Include(e => e.course));
+
+        // Group by CourseId and project the results into CourseRefundedCountResponse
+        var refundedEnrollmentCounts = await refundedEnrollmentsQuery
+            .GroupBy(e => e.CourseId)
+            .Select(g => new CourseRefundedCountResponse(
+                g.Key,  // Pass CourseId as the first positional argument
+                g.First().course.Title,  // Pass CourseTitle from the first course in the group
+                g.Count()  // Pass the count of enrollments for this course
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result.Success(refundedEnrollmentCounts);
+    }
+
+
+
+
 
 }

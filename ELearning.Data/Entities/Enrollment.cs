@@ -17,7 +17,6 @@ public class Enrollment : AuditableEntity
 
     public string Status { get; set; }=string.Empty;
 
-
     public Student student { get; set; } = default!;
 
     public Course course { get; set; } = default!;

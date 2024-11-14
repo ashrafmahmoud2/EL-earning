@@ -101,7 +101,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
         if (enrollment is null)
             return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
-        payment.Status= paymentStatus; 
+        payment.Status = paymentStatus;
 
         await _unitOfWork.Repository<Payment>().UpdateAsync(payment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
@@ -145,6 +145,24 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
         return Result.Success();
     }
+
+    public async Task<Result<IEnumerable<PaymentResponse>>> GetAllPaymentsForStudentAsync(string userId)
+    {
+        var payments = await _context.Students
+            .Where(s => s.User.Id == userId && s.IsActive) // Filter by userId and active student
+            .SelectMany(s => s.Enrollments) // Flatten the enrollments
+            .Where(e => e.IsActive) // Ensure active enrollments
+            .SelectMany(e => e.Payments) // Flatten the payments for each enrollment
+            .Where(p => p.IsActive) // Ensure active payments
+            .ToListAsync();
+
+
+        var paymentResponses = payments.Adapt<IEnumerable<PaymentResponse>>();
+        return Result.Success(paymentResponses);
+
+    }
+
+
 }
 
 

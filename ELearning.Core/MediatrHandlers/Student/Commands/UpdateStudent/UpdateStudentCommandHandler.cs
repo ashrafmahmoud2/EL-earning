@@ -18,9 +18,11 @@ public class UpdateStudentCommandHandler : IRequestHandler<UpdateStudentCommand,
 
     public async Task<ApiResponse<StudentDto>> Handle(UpdateStudentCommand request, CancellationToken cancellationToken)
     {
-        var student = _mapper.Map<Data.Entities.Student>(request);
-        var updatedStudent = await _studentService.UpdateStudentAsync(student, cancellationToken);
-        var studentDto = _mapper.Map<StudentDto>(updatedStudent);
-        return _responseHandler.Success(studentDto, "Student updated successfully.");
+        //var student = _mapper.Map<Data.Entities.Student>(request);
+        //var updatedStudent = await _studentService.UpdateStudentAsync(student, cancellationToken);
+        //var studentDto = _mapper.Map<StudentDto>(updatedStudent);
+        //return _responseHandler.Success(studentDto, "Student updated successfully.");
+
+        return null;
     }
 }

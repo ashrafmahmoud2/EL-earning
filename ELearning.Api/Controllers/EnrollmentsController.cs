@@ -21,6 +21,21 @@ public class EnrollmentsController : ControllerBase
         return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem();
     }
 
+    [HttpGet("course/{id}")]
+    public async Task<IActionResult> GetEnrollmentByCourseId([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var enrollment = await _enrollmentService.GetEnrollmentByCourseId(id, cancellationToken);
+        return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem();
+    }
+
+    [HttpGet("student/{id}")]
+    public async Task<IActionResult> GetEnrollmentByStudentId([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var enrollment = await _enrollmentService.GetEnrollmentByStudentId(id, cancellationToken);
+        return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem();
+    }
+
+
     [HttpGet("")]
     public async Task<IActionResult> GetAllEnrollments()
     {

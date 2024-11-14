@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 
 namespace ELearning.Data.Contracts.Enrollment;
 public record EnrollmentResponse(
-       Guid EnrollmentId,
-       bool IsActive,
-       Guid StudentId,
-       string StudentName,
-       Guid CourseId,
-       string CourseName,
-       DateTime EnrolledAt,
-       DateTime? CompletedAt, 
-       string Status
-   );
+    Guid EnrollmentId,
+    bool IsActive,
+    Guid StudentId,
+   string StudentName,
+    Guid CourseId,
+    string CourseName,
+    DateTime EnrolledAt,
+    DateTime? CompletedAt,
+    string Status
+);
+

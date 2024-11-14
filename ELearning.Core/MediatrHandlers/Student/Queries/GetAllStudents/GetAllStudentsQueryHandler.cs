@@ -18,8 +18,10 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, A
 
     public async Task<ApiResponse<IEnumerable<StudentDto>>> Handle(GetAllStudentsQuery request, CancellationToken cancellationToken)
     {
-        var students = await _studentService.GetAllStudentsAsync(cancellationToken);
-        var studentDtos = _mapper.Map<IEnumerable<StudentDto>>(students);
-        return _responseHandler.Success(studentDtos);
+        //var students = await _studentService.GetAllStudentsAsync(cancellationToken);
+        //var studentDtos = _mapper.Map<IEnumerable<StudentDto>>(students);
+        //return _responseHandler.Success(studentDtos);
+
+        return null;
     }
 }

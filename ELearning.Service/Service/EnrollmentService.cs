@@ -39,6 +39,31 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         return Result.Success(EnrollmentResponse);
     }
+    public async Task<Result<EnrollmentResponse>> GetEnrollmentByCourseId(Guid id, CancellationToken cancellationToken = default)
+    {
+        var Enrollments = await _unitOfWork.Repository<Enrollment>()
+                                         .FindAsync(x => x.CourseId == id);
+
+        if (Enrollments is null)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+
+        var EnrollmentResponse = Enrollments.Adapt<EnrollmentResponse>();
+
+        return Result.Success(EnrollmentResponse);
+    }
+    public async Task<Result<EnrollmentResponse>> GetEnrollmentByStudentId(Guid id, CancellationToken cancellationToken = default)
+    {
+        var Enrollments = await _unitOfWork.Repository<Enrollment>()
+                                         .FindAsync(x => x.StudentId == id);
+
+        if (Enrollments is null)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+
+        var EnrollmentResponse = Enrollments.Adapt<EnrollmentResponse>();
+
+        return Result.Success(EnrollmentResponse);
+    }
+
 
     public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default)
     {
@@ -86,7 +111,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                 EnrollmentId: s.EnrollmentId,
                 IsActive: s.IsActive,
                 StudentId: s.student.StudentId,
-                StudentName: s.student.User.FirstName,
+              StudentName: s.student.User.FirstName,
                 CourseId: s.course.CourseId,
                 CourseName: s.course.Title,
                 EnrolledAt: s.enrolledAt,
@@ -215,6 +240,37 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         return Result.Success();
     }
+
+    public async Task<IEnumerable<EnrollmentResponse>> GetEnrollmentCoursesForStudentAsync(string userId)
+    {
+        var student = await _context.Students
+            .Include(s => s.Enrollments)
+             .ThenInclude(e => e.course)
+            .FirstOrDefaultAsync(s => s.User.Id == userId);
+
+        if (student == null)
+        {
+            return Enumerable.Empty<EnrollmentResponse>(); // Return an empty list if student is not found
+        }
+
+        return student.Enrollments
+            .Where(e => e.IsActive) // Filter active enrollments
+            .Select(e => new EnrollmentResponse(
+                EnrollmentId: e.EnrollmentId,
+                IsActive: e.IsActive,
+                StudentId: e.StudentId,
+                StudentName: e.student.User.FirstName, 
+                CourseId: e.course.CourseId,
+                CourseName: e.course.Title, // Assuming the Course entity has a 'Name' property
+                EnrolledAt: e.enrolledAt,
+                CompletedAt: e.completedAt,
+                Status: e.Status
+            ))
+            .ToList();
+    }
+
+
+
 }
 
 

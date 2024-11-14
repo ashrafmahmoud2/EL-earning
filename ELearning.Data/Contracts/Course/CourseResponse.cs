@@ -22,3 +22,4 @@ public record CourseResponse(
     List<string> LearningObjectives,
     TimeSpan TotalTime
 );
+

@@ -10,5 +10,6 @@ public interface ICommentService
     Task<Result<CommentResponse>> CreateCommentAsync(CommentRequest request, CancellationToken cancellationToken = default);
     Task<Result<CommentResponse>> UpdateCommentAsync(Guid id, CommentRequest request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<int>> CountCommentsForLesson(Guid lessonId, CancellationToken cancellationToken = default);
 }
 

@@ -58,6 +58,10 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return Task.CompletedTask;
     }
 
+    public IQueryable<T> Where(Expression<Func<T, bool>> predicate)
+    {
+        return _context.Set<T>().Where(predicate);
+    }
 
     public async Task<IEnumerable<T>> FindAsync(
         Expression<Func<T, bool>> predicate,
