@@ -36,29 +36,52 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
     public async Task<Result<QuizAttemptResponse>> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
-        //START DAY With sentic commite in githup;
-        //stop in make the Update and test conttroler
-
-
         if (request is null)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
 
         bool quizAttemptExists = await _unitOfWork.Repository<QuizAttempt>()
-        .AnyAsync(x => x.StudentId == request.StudentId && x.QuizId == request.QuizId, cancellationToken);
+            .AnyAsync(x => x.StudentId == request.StudentId && x.QuizId == request.QuizId, cancellationToken);
 
         if (quizAttemptExists)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.DuplicatedQuizAttempt);
 
-
+        // Adapt the request to a QuizAttempt entity
         var quizAttempt = request.Adapt<QuizAttempt>();
+        await CalculateQuizAttemptStatsAsync(quizAttempt, request, cancellationToken);
 
+        await _unitOfWork.Repository<QuizAttempt>().AddAsync(quizAttempt, cancellationToken);
+        await _unitOfWork.CompleteAsync(cancellationToken);
+
+        var response = quizAttempt.Adapt<QuizAttemptResponse>();
+        return Result.Success(response);
+    }
+
+    public async Task<Result<QuizAttemptResponse>> UpdateQuizAttemptAsync(Guid quizAttemptId, QuizAttemptRequest request, CancellationToken cancellationToken = default)
+    {
+        var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
+            .FirstOrDefaultAsync(x => x.QuizAttemptId == quizAttemptId, cancellationToken: cancellationToken);
+
+        if (quizAttempt is null)
+            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
+
+        // Update quiz attempt stats with the new answers
+        await CalculateQuizAttemptStatsAsync(quizAttempt, request, cancellationToken);
+
+        await _unitOfWork.Repository<QuizAttempt>().UpdateAsync(quizAttempt, cancellationToken);
+        await _unitOfWork.CompleteAsync(cancellationToken);
+
+        var response = quizAttempt.Adapt<QuizAttemptResponse>();
+        return Result.Success(response);
+    }
+
+    private async Task CalculateQuizAttemptStatsAsync(QuizAttempt quizAttempt, QuizAttemptRequest request, CancellationToken cancellationToken)
+    {
         int totalQuestions = await _unitOfWork.Repository<Question>()
             .CountAsync(q => q.QuizId == request.QuizId, cancellationToken);
 
         int correctAnswers = 0;
         int incorrectAnswers = 0;
 
-        // Check each answer's correctness
         foreach (var questionAnswer in request.QuestionAnswerResponse)
         {
             foreach (var answerId in questionAnswer.SelectedAnswersIds)
@@ -73,19 +96,12 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
             }
         }
 
-
         quizAttempt.TotalQuestions = totalQuestions;
         quizAttempt.CorrectAnswersCount = correctAnswers;
         quizAttempt.IncorrectAnswersCount = incorrectAnswers;
         quizAttempt.NotAnswersQuestionsCount = Math.Max(0, totalQuestions - (correctAnswers + incorrectAnswers));
         quizAttempt.ScorePercentage = totalQuestions > 0 ? (correctAnswers * 100) / totalQuestions : 0;
         quizAttempt.HasPassed = quizAttempt.ScorePercentage >= 70;
-
-        await _unitOfWork.Repository<QuizAttempt>().AddAsync(quizAttempt, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
-
-        var response = quizAttempt.Adapt<QuizAttemptResponse>();
-        return Result.Success(response);
     }
 
     public async Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
@@ -99,24 +115,6 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         return QuizAttempts.Adapt<IEnumerable<QuizAttemptResponse>>();
     }
 
-    public async Task<Result<QuizAttemptResponse>> UpdateQuizAttemptAsync(Guid QuizAttemptId, QuizAttemptRequest request, CancellationToken cancellationToken = default)
-    {
-
-        var QuizAttempt = await _unitOfWork.Repository<QuizAttempt>()
-                                         .FirstOrDefaultAsync(x => x.QuizAttemptId == QuizAttemptId,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
-
-        if (QuizAttempt is null)
-            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
-
-
-        //QuizAttempt.SelectedAnswers = request.se;
-
-        await _unitOfWork.Repository<QuizAttempt>().UpdateAsync(QuizAttempt, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
-
-        return Result.Success(QuizAttempt.Adapt<QuizAttemptResponse>());
-    }
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
