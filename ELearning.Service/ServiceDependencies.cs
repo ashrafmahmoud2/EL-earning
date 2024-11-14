@@ -42,6 +42,11 @@ public static class ServiceDependencies
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IQuestionService, QuestionService>();
+        services.AddScoped<IAnswerService, AnswerService>();
+        services.AddScoped<IQuizAttemptService, QuizAttemptService>();
+        services.AddScoped<IQuizAttemptService, QuizAttemptService>();
+        services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 
 
         services.AddMapsterConfig();

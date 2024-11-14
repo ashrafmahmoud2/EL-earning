@@ -20,4 +20,7 @@ public record EnrollmentErrors
     public static readonly Error DuplicateEnrollmentData =
         new("Enrollment.DuplicateEnrollmentData", "The student is already enrolled in this course with the same data.", StatusCodes.Status409Conflict);
 
+    public static readonly Error RefundedEnrollment =
+        new(" Enrollment.Refunded Enrollment", "Cannot perform any action on a refunded Enrollment.", StatusCodes.Status409Conflict);
+
 }

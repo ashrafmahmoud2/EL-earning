@@ -10,4 +10,5 @@ public interface IEnrollmentService
     Task<Result< EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default);
     Task<Result< EnrollmentResponse>> UpdateEnrollmentAsync(Guid id, EnrollmentUpdateRequest  request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result> RefundEnrollmentAsync(Guid id, CancellationToken cancellationToken = default);
 }

@@ -42,6 +42,15 @@ public class EnrollmentsController : ControllerBase
         return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
     }
 
+    [HttpPut("refund_payment/{id}")]
+    public async Task<IActionResult> RefundPayment([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var coures = await _enrollmentService.RefundEnrollmentAsync(id, cancellationToken);
+
+        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+    }
+
+
     [HttpPut("change-owner/{id}")]
     public async Task<IActionResult> ChangeEnrollmentOwner([FromRoute] Guid id, [FromBody] EnrollmentUpdateRequest request, CancellationToken cancellationToken)
     {
@@ -56,10 +65,10 @@ public class EnrollmentsController : ControllerBase
         return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
     }
 
-    [HttpPut("toggle-status/{id}")]
-    public async Task<IActionResult> ToggleStatusEnrollment([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var enrollment = await _enrollmentService.ToggleStatusAsync(id, cancellationToken);
-        return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
-    }
+    //[HttpPut("toggle-status/{id}")]
+    //public async Task<IActionResult> ToggleStatusEnrollment([FromRoute] Guid id, CancellationToken cancellationToken)
+    //{
+    //    var enrollment = await _enrollmentService.ToggleStatusAsync(id, cancellationToken);
+    //    return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
+    //}
 }

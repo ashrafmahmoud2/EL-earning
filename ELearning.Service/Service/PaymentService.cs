@@ -101,7 +101,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
         if (enrollment is null)
             return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
-        // Additional logic can be added here as needed, like handling different student/course conditions.
+        payment.Status= paymentStatus; 
 
         await _unitOfWork.Repository<Payment>().UpdateAsync(payment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);

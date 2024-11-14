@@ -9,14 +9,11 @@ using ELearning.Data.Errors;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.Payment;
 using ELearning.Data.Consts;
+using Azure.Core;
 namespace ELearning.Service.Service;
 
 public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 {
-    //Handel the Payment & Enrollment Controller
-    //Make Result In Payment Or make Result Controler like srvay baskt
-    //mkae reback mony from ernrolment coures only
-    //All entity in student;
 
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
@@ -43,7 +40,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         return Result.Success(EnrollmentResponse);
     }
 
-    public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request,string EnrollmentStatus, CancellationToken cancellationToken = default )
+    public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default)
     {
         if (request is null)
             return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
@@ -54,7 +51,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         if (isDuplicate)
             return Result.Failure<EnrollmentResponse>(EnrollmentErrors.DuplicatedEnrollment);
 
-        
+
 
         var enrollment = request.Adapt<Enrollment>();
 
@@ -70,7 +67,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         }
 
         // If enrollment added successfully, proceed with payment
-        await _paymentService.CreatePaymentAsync(new PaymentRequest(enrollment.EnrollmentId,enrollment.StudentId,enrollment.CourseId), PaymentStatus.Completed, cancellationToken);
+        await _paymentService.CreatePaymentAsync(new PaymentRequest(enrollment.EnrollmentId, enrollment.StudentId, enrollment.CourseId), PaymentStatus.Completed, cancellationToken);
 
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
@@ -107,7 +104,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         if (enrollment is null)
             return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
-     
+
         var payment = await _unitOfWork.Repository<Payment>()
                                .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);
 
@@ -117,6 +114,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         if (enrollment.Status == EnrollmentStatus.CanceledForNewStudent || enrollment.Status == EnrollmentStatus.CanceledForNewCourse)
             return Result.Failure<EnrollmentResponse>(EnrollmentErrors.CanceledEnrollment);
+
+        if (enrollment.Status == EnrollmentStatus.Refunded)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.RefundedEnrollment);
+
 
 
         if (enrollment.StudentId == request.StudentId && enrollment.CourseId == request.CourseId)
@@ -131,31 +132,28 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                 EnrollmentStatus.ReplacedByNewCourse,
                 cancellationToken);
 
-            
+
             await _paymentService.UpdatePaymentAsync(payment.PaymentId, PaymentStatus.CanceledForDifferentCourse,
-                new PaymentRequest(enrollmentId,enrollment.StudentId,enrollment.CourseId),
-                cancellationToken);
-            await _paymentService.CreatePaymentAsync(new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
-                PaymentStatus.PaymentForDifferentCourse,
+                new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
                 cancellationToken);
 
+
         }
-        else if (enrollment.CourseId == request.CourseId && enrollment.StudentId != request.StudentId )
+        else if (enrollment.CourseId == request.CourseId && enrollment.StudentId != request.StudentId)
         {
             enrollment.StudentId = request.StudentId;
             enrollment.Status = EnrollmentStatus.CanceledForNewStudent;
             await CreateEnrollmentAsync(new EnrollmentAddRequest(request.StudentId, request.CourseId),
-                EnrollmentStatus.ReplacedByNewStudent, 
+                EnrollmentStatus.ReplacedByNewStudent,
                 cancellationToken);
 
 
             await _paymentService.UpdatePaymentAsync(payment.PaymentId, PaymentStatus.CanceledForDifferentStudent,
                            new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
                            cancellationToken);
-            await _paymentService.CreatePaymentAsync(new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
-                PaymentStatus.PaymentForDifferentStudent,
-                cancellationToken);
+
         }
+
 
 
 
@@ -177,6 +175,43 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         Enrollment.IsActive = !Enrollment.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> RefundEnrollmentAsync(Guid enrollmentId, CancellationToken cancellationToken = default)
+    {
+        var enrollment = await _unitOfWork.Repository<Enrollment>()
+                                         .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);
+
+        if (enrollment is null)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+
+
+        var payment = await _unitOfWork.Repository<Payment>()
+                               .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);
+
+        if (payment is null)
+            return Result.Failure<EnrollmentResponse>(PaymentErrors.PaymentNotFound);
+
+
+        if (enrollment.Status == EnrollmentStatus.CanceledForNewStudent || enrollment.Status == EnrollmentStatus.CanceledForNewCourse)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.CanceledEnrollment);
+
+        if (enrollment.Status == EnrollmentStatus.Refunded)
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.RefundedEnrollment);
+
+
+
+
+        enrollment.Status = EnrollmentStatus.Refunded;
+        if (await _unitOfWork.CompleteAsync(cancellationToken) >= 0)
+        {
+            await _paymentService.UpdatePaymentAsync(payment.PaymentId, PaymentStatus.Refunded,
+                                      new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
+                                      cancellationToken);
+        }
+
 
         return Result.Success();
     }

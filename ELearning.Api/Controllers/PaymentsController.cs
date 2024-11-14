@@ -7,12 +7,7 @@ namespace ELearning.Api.Controllers;
 [ApiController]
 public class PaymentsController(IPaymentService PaymentService) : ControllerBase
 {
-
-
-  
-
-    private readonly IPaymentService _PaymentService = PaymentService;
-
+      private readonly IPaymentService _PaymentService = PaymentService;
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPaymentById([FromRoute] Guid id, CancellationToken cancellationToken)
@@ -22,7 +17,6 @@ public class PaymentsController(IPaymentService PaymentService) : ControllerBase
         return Payment.IsSuccess ? Ok(Payment.Value) : Payment.ToProblem();
     }
 
-
     [HttpGet("")]
     public async Task<IActionResult> GetAllPayments()
     {
@@ -31,15 +25,13 @@ public class PaymentsController(IPaymentService PaymentService) : ControllerBase
         return Ok(Payment);
     }
 
+    //[HttpPost("")]
+    //public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest request, CancellationToken cancellationToken)
+    //{
+    //    var payment = await _PaymentService.CreatePaymentAsync(request,PaymentStatus.Completed, cancellationToken);
 
-    [HttpPost("")]
-    public async Task<IActionResult> CreatePayment([FromBody] PaymentRequest request, CancellationToken cancellationToken)
-    {
-        var payment = await _PaymentService.CreatePaymentAsync(request,PaymentStatus.Completed, cancellationToken);
-
-        return payment.IsSuccess ?Ok(payment.Value) : payment.ToProblem();
-    }
-
+    //    return payment.IsSuccess ?Ok(payment.Value) : payment.ToProblem();
+    //}
 
  
     //[HttpPut("{id}")]
@@ -50,22 +42,21 @@ public class PaymentsController(IPaymentService PaymentService) : ControllerBase
     //    return coures.IsSuccess ? NoContent() : coures.ToProblem();
     //}
 
-    [HttpPut("refund_payment/{id}")]
-    public async Task<IActionResult> RefundPayment([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var coures = await _PaymentService.RefundPaymentAsync(id,  cancellationToken);
+    //[HttpPut("refund_payment/{id}")]
+    //public async Task<IActionResult> RefundPayment([FromRoute] Guid id, CancellationToken cancellationToken)
+    //{
+    //    var coures = await _PaymentService.RefundPaymentAsync(id,  cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
-    }
+    //    return coures.IsSuccess ? NoContent() : coures.ToProblem();
+    //}
 
+    //[HttpPut("Toggle_status{id}")]
+    //public async Task<IActionResult> ToggleStatusPayment([FromRoute] Guid id, CancellationToken cancellationToken)
+    //{
+    //    var Instructor = await _PaymentService.ToggleStatusAsync(id, cancellationToken);
 
-    [HttpPut("Toggle_status{id}")]
-    public async Task<IActionResult> ToggleStatusPayment([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var Instructor = await _PaymentService.ToggleStatusAsync(id, cancellationToken);
-
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
-    }
+    //    return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+    //}
 
 
 

@@ -4,6 +4,7 @@ using ELearning.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ELearning.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241113092052_AddQuestionTable")]
+    partial class AddQuestionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,54 +24,6 @@ namespace ELearning.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ELearning.Data.Entities.Answer", b =>
-                {
-                    b.Property<Guid>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("QuizAttemptId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("AnswerId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("QuestionId");
-
-                    b.HasIndex("QuizAttemptId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("Answers");
-                });
 
             modelBuilder.Entity("ELearning.Data.Entities.ApplicationRole", b =>
                 {
@@ -555,9 +510,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.Property<int>("OrderIndex")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("QuizAttemptId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("QuizId")
                         .HasColumnType("uniqueidentifier");
 
@@ -574,8 +526,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.HasKey("QuestionId");
 
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("QuizAttemptId");
 
                     b.HasIndex("QuizId");
 
@@ -625,68 +575,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Quizs");
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.QuizAttempt", b =>
-                {
-                    b.Property<Guid>("QuizAttemptId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("AttemptedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CorrectAnswersCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("HasPassed")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("IncorrectAnswersCount")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("NotAnswersQuestionsCount")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("QuizId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<double>("ScorePercentage")
-                        .HasColumnType("float");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("TotalQuestions")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("QuizAttemptId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("QuizId");
-
-                    b.HasIndex("StudentId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("QuizAttempts");
                 });
 
             modelBuilder.Entity("ELearning.Data.Entities.Section", b =>
@@ -876,35 +764,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.Answer", b =>
-                {
-                    b.HasOne("ELearning.Data.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.Question", "Question")
-                        .WithMany("Answers")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.QuizAttempt", null)
-                        .WithMany("SelectedAnswers")
-                        .HasForeignKey("QuizAttemptId");
-
-                    b.HasOne("ELearning.Data.Entities.ApplicationUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Question");
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("ELearning.Data.Entities.ApplicationUser", b =>
@@ -1133,10 +992,6 @@ namespace ELearning.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ELearning.Data.Entities.QuizAttempt", null)
-                        .WithMany("Questions")
-                        .HasForeignKey("QuizAttemptId");
-
                     b.HasOne("ELearning.Data.Entities.Quiz", "Quiz")
                         .WithMany()
                         .HasForeignKey("QuizId")
@@ -1177,39 +1032,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.Navigation("Lesson");
 
                     b.Navigation("UpdatedBy");
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.QuizAttempt", b =>
-                {
-                    b.HasOne("ELearning.Data.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.Quiz", "Quiz")
-                        .WithMany()
-                        .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.Student", "student")
-                        .WithMany("QuizAttempts")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ELearning.Data.Entities.ApplicationUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Quiz");
-
-                    b.Navigation("UpdatedBy");
-
-                    b.Navigation("student");
                 });
 
             modelBuilder.Entity("ELearning.Data.Entities.Section", b =>
@@ -1340,18 +1162,6 @@ namespace ELearning.Infrastructure.Migrations
                     b.Navigation("Quizzes");
                 });
 
-            modelBuilder.Entity("ELearning.Data.Entities.Question", b =>
-                {
-                    b.Navigation("Answers");
-                });
-
-            modelBuilder.Entity("ELearning.Data.Entities.QuizAttempt", b =>
-                {
-                    b.Navigation("Questions");
-
-                    b.Navigation("SelectedAnswers");
-                });
-
             modelBuilder.Entity("ELearning.Data.Entities.Section", b =>
                 {
                     b.Navigation("Lessons");
@@ -1360,8 +1170,6 @@ namespace ELearning.Infrastructure.Migrations
             modelBuilder.Entity("ELearning.Data.Entities.Student", b =>
                 {
                     b.Navigation("Enrollments");
-
-                    b.Navigation("QuizAttempts");
                 });
 #pragma warning restore 612, 618
         }
