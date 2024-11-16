@@ -7,7 +7,7 @@ public interface IAnswerService
 {
     Task<Result<AnswerResponse>> GetAnswerByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<AnswerResponse>> GetAllAnswersAsync(CancellationToken cancellationToken = default);
-    Task<Result<AnswerResponse>> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default);
+    Task<Result> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default);
     Task<Result<AnswerResponse>> UpdateAnswerAsync(Guid id, AnswerRequest request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
 }

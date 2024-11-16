@@ -14,10 +14,8 @@ namespace ELearning.Service.Service;
 
 public class CourseService : BaseRepository<Course>, ICourseService
 {
-
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
-
 
     public CourseService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
     {
@@ -25,16 +23,20 @@ public class CourseService : BaseRepository<Course>, ICourseService
         _unitOfWork = unitOfWork;
 
     }
+
     public async Task<Result<CourseResponse>> GetCourseByIdAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
 
 
-        // Ensure the correct method signature for including related data and passing cancellation token
-        //var course = await _unitOfWork.Repository<Course>()
-        //                              .FindAsync(x => x.CourseId == courseId, include: x => x.Include(c => c.CreatedBy),  cancellationToken);
-        var course = await _context.Courses
-                                    .Where(x => x.CourseId == courseId)
-                                    .FirstOrDefaultAsync();
+        var course = await _unitOfWork.Repository<Course>()
+                                      .FirstOrDefaultAsync(x => x.CourseId == courseId,
+                                      x => x.Include(c => c.CreatedBy)
+                                     .Include(c => c.Instructor)
+                                     .ThenInclude(i => i.User),
+                                      cancellationToken);
+     
+
+
 
         if (course is null)
             return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
@@ -43,75 +45,52 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         return Result.Success(courseResponse);
     }
-    public async Task<Result<CourseResponse>> GetCourseBycategoryId(Guid categoryId, CancellationToken cancellationToken = default)
+
+    public async Task<Result<IEnumerable<CourseResponse>>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
     {
-        var coures = await _unitOfWork.Repository<Course>().FindAsync(x => x.CategoryId == categoryId);
+        // Fetch courses with related entities eagerly loaded
+        var courses = await _unitOfWork.Repository<Course>()
+            .FindAsync(
+                predicate: x => true, // Fetch all records
+                include: query => query.Include(c => c.CreatedBy)
+                                      .Include(c => c.Instructor)
+                                        .ThenInclude(i => i.User),
+                cancellationToken: cancellationToken
+            );
 
-
-        if (coures is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
-
-        var courseResponse = coures.Adapt<CourseResponse>();
-
-        return Result.Success(courseResponse);
-    }
-    public async Task<Result<CourseResponse>> GetCourseByinstructorId(Guid instructorId, CancellationToken cancellationToken = default)
-    {
-        var coures = await _unitOfWork.Repository<Course>().FindAsync(x => x.InstructorId == instructorId);
-
-
-        if (coures is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
-
-        var courseResponse = coures.Adapt<CourseResponse>();
-
-        return Result.Success(courseResponse);
+        var courseResponses = courses.Adapt<IEnumerable<CourseResponse>>();
+        return Result.Success(courseResponses);
     }
 
-    public async Task<Result<CourseResponse>> CreateCourseAsync(CourseRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> CreateCourseAsync(CourseRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (await _unitOfWork.Repository<Course>().AnyAsync(x => x.Title == request.Title))
+            return Result.Failure<CourseResponse>(CourseErrors.DuplicatedCourse);
 
         if (!await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.InstructorId == request.InstructorId))
             return Result.Failure<CourseResponse>(InstructorErrors.InstructorNotFound);
 
-         if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
+        if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
             return Result.Failure<CourseResponse>(CategoryErrors.CategoryNotFound);
 
-        
+
 
 
         if (request is null)
             Result.Failure(CourseErrors.CourseNotFound);
 
-        //if (await _categoryService.GetCategoryByIdAsync(request.CategoryId) == null ||
-        //  await _instructorService.GetInstructorByIdAsync(request.InstructorId) == null)
-        //{
-        //    return Result.Failure(CourseErrors.CourseNotFound);
-        //}
+      
 
 
 
         var Course = request.Adapt<Course>();
         await _unitOfWork.Repository<Course>().AddAsync(Course, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(Course.Adapt<CourseResponse>());
+        return Result.Success();
     }
 
-    public async Task<IEnumerable<CourseResponse>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
-    {
-        var courses = await _unitOfWork.Repository<Course>()
-            .FindAsync(
-                s => true,
-                include: q => q.Include(s => s.CreatedBy),
-                cancellationToken: cancellationToken
-            );
-
-        var courseResponses = courses.Adapt<IEnumerable<CourseResponse>>();
-
-        return courseResponses;
-    }
-
-    public async Task<Result> UpdateCourseAsync(Guid id, CourseRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<CourseResponse>> UpdateCourseAsync(Guid id, CourseRequest request, CancellationToken cancellationToken = default)
     {
 
 
@@ -124,16 +103,17 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
         var course = await _unitOfWork.Repository<Course>()
-                                         .FirstOrDefaultAsync(x => x.CourseId == id,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
+                                          .FirstOrDefaultAsync(x => x.CourseId == id,
+                                          x => x.Include(c => c.CreatedBy)
+                                         .Include(c => c.Instructor).ThenInclude(i => i.User),
+                                          cancellationToken);
 
         if (course is null)
             return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
 
-        //make adapt manoual or user mapping
 
-        course = request.Adapt<Course>();
-
+    
+        course = request.Adapt(course);
 
         await _unitOfWork.Repository<Course>().UpdateAsync(course, cancellationToken);
 
@@ -158,14 +138,51 @@ public class CourseService : BaseRepository<Course>, ICourseService
         return Result.Success();
     }
 
-    public async Task<Result<List<CourseSectionLessonCountResponse>>> GetCourseSectionLessonCounts(CancellationToken cancellationToken = default)
+    public async Task<Result<CourseResponse>> GetCourseBycategoryId(Guid categoryId, CancellationToken cancellationToken = default)
+    {
+        var course = await _unitOfWork.Repository<Course>()
+                                  .FirstOrDefaultAsync(x => x.CategoryId == categoryId,
+                                  x => x.Include(c => c.CreatedBy)
+                                 .Include(c => c.Instructor)
+                                 .ThenInclude(i => i.User),
+                                  cancellationToken);
+
+        if (course is null)
+            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+
+        var courseResponse = course.Adapt<CourseResponse>();
+
+        return Result.Success(courseResponse);
+    }
+  
+    public async Task<Result<CourseResponse>> GetCourseByinstructorId(Guid instructorId, CancellationToken cancellationToken = default)
+    {
+
+        var course = await _unitOfWork.Repository<Course>()
+                                   .FirstOrDefaultAsync(x => x.InstructorId == instructorId,
+                                   x => x.Include(c => c.CreatedBy)
+                                  .Include(c => c.Instructor)
+                                  .ThenInclude(i => i.User),
+                                   cancellationToken);
+
+        if (course is null)
+            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+
+        var courseResponse = course.Adapt<CourseResponse>();
+
+        return Result.Success(courseResponse);
+    }
+
+    public async Task<Result<List<CourseSectionLessonCountResponse>>> GetCoursesStructure(CancellationToken cancellationToken = default)
     {
         var courseSectionLessonCounts = await _context.Courses
             .Select(course => new CourseSectionLessonCountResponse(
                 course.CourseId,
+                course.Title, // Ensure that the CourseName property exists
                 course.sections.Count,
                 course.sections.Select(section => new SectionLessonCountResponse(
                     section.SectionId,
+                    section.Title, // Ensure that the SectionName property exists
                     section.Lessons.Count
                 )).ToList()
             ))
@@ -173,7 +190,33 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         return Result.Success(courseSectionLessonCounts);
     }
-   
+
+    public async Task<Result<CourseSectionLessonCountResponse>> GetCourseStructureById(Guid id, CancellationToken cancellationToken = default)
+    {
+        var courseSectionLessonCount = await _context.Courses
+            .Where(course => course.CourseId == id)
+            .Select(course => new CourseSectionLessonCountResponse(
+                course.CourseId,
+                course.Title, // Ensure that the CourseName property exists
+                course.sections.Count,
+                course.sections.Select(section => new SectionLessonCountResponse(
+                    section.SectionId,
+                    section.Title, // Ensure that the SectionName property exists
+                    section.Lessons.Count
+                )).ToList()
+            ))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (courseSectionLessonCount == null)
+        {
+            return Result.Failure<CourseSectionLessonCountResponse>(CourseErrors.CourseNotFound);
+        }
+
+        return Result.Success(courseSectionLessonCount);
+    }
+
+
+
     public async Task<Result<List<CourseEnrollmentCountResponse>>> CountEnrollmentsForCourses(CancellationToken cancellationToken = default)
     {
         var enrollments = await _unitOfWork.Repository<Enrollment>().GetAllAsync(cancellationToken);

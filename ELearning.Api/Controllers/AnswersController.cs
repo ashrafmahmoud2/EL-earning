@@ -12,27 +12,27 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAnswerById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Answer = await _AnswerService.GetAnswerByIdAsync(id, cancellationToken);
+        var answer = await _AnswerService.GetAnswerByIdAsync(id, cancellationToken);
 
-        return Answer.IsSuccess ? Ok(Answer.Value) : Answer.ToProblem();
+        return answer.IsSuccess ? Ok(answer.Value) : answer.ToProblem();
     }
 
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllAnswers()
     {
-        var Answer = await _AnswerService.GetAllAnswersAsync();
+        var answer = await _AnswerService.GetAllAnswersAsync();
 
-        return Ok(Answer);
+        return Ok(answer);
     }
 
 
     [HttpPost("")]
     public async Task<IActionResult> CreateAnswer([FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _AnswerService.CreateAnswerAsync(request, cancellationToken);
+        var answer = await _AnswerService.CreateAnswerAsync(request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return answer.IsSuccess ? Created() : answer.ToProblem();
     }
 
 
@@ -40,18 +40,18 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateAnswer([FromRoute] Guid id, [FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
-        var coures =await  _AnswerService.UpdateAnswerAsync(id, request, cancellationToken);
+        var answer = await  _AnswerService.UpdateAnswerAsync(id, request, cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+        return answer.IsSuccess ? Ok(answer.Value) : answer.ToProblem();
     }
 
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusAnswer([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Instructor = await _AnswerService.ToggleStatusAsync(id, cancellationToken);
+        var answer = await _AnswerService.ToggleStatusAsync(id, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return answer.IsSuccess ? NoContent() : answer.ToProblem();
     }
 
 

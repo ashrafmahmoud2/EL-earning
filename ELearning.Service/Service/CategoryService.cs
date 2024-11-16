@@ -41,10 +41,11 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
             Result.Failure(CategoryErrors.CategoryNotFound);
 
 
-        var Category = request.Adapt<Category>();
-        await _unitOfWork.Repository<Category>().AddAsync(Category, cancellationToken);
+        var category = request.Adapt<Category>();
+        await _unitOfWork.Repository<Category>().AddAsync(category, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(Category.Adapt<CategoryResponse>());
+        var result = category.Adapt<CategoryResponse>();
+        return Result.Success(result);
     }
 
     public async Task<IEnumerable<CategoryResponse>> GetAllCategorysAsync(CancellationToken cancellationToken = default)

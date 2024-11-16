@@ -27,24 +27,24 @@ public class CategorysController(ICategoryService CategoryService) : ControllerB
     [HttpPost("")]
     public async Task<IActionResult> CreateCategory([FromBody] CategoryRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _CategoryService.CreateCategoryAsync( request, cancellationToken);
+        var category = await _CategoryService.CreateCategoryAsync( request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return category.IsSuccess ? Ok(category.Value): category.ToProblem();
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCategory([FromRoute] Guid id, [FromBody] CategoryRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _CategoryService.UpdateCategoryAsync(id, request, cancellationToken);
+        var category = await _CategoryService.UpdateCategoryAsync(id, request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return category.IsSuccess ? Ok(category.Value) : category.ToProblem();
     }
-    
+
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusCategory([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Instructor = await _CategoryService.ToggleStatusAsync(id, cancellationToken);
+        var category = await _CategoryService.ToggleStatusAsync(id, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return category.IsSuccess ? NoContent() : category.ToProblem();
     }
 }

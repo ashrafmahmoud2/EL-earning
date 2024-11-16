@@ -8,15 +8,46 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
 {
     private readonly ICourseService _CourseService = CourseService;
 
-
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCourseById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Course = await _CourseService.GetCourseByIdAsync(id, cancellationToken);
+        var course = await _CourseService.GetCourseByIdAsync(id, cancellationToken);
 
-        return Course.IsSuccess ? Ok(Course.Value) : Course.ToProblem();
+        return course.IsSuccess ? Ok(course.Value) : course.ToProblem();
     }
-    
+
+    [HttpGet("")]
+    public async Task<IActionResult> GetAllCourses()
+    {
+        var course = await _CourseService.GetAllCoursesAsync();
+
+        return course.IsSuccess ? Ok(course.Value) : course.ToProblem();
+    }
+
+    [HttpPost("")]
+    public async Task<IActionResult> CreateCourse([FromBody] CourseRequest request, CancellationToken cancellationToken)
+    {
+        var course = await _CourseService.CreateCourseAsync(request, cancellationToken);
+
+        return course.IsSuccess ? Created() : course.ToProblem();
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCourse([FromRoute] Guid id, [FromBody] CourseRequest request, CancellationToken cancellationToken)
+    {
+        var coures = await _CourseService.UpdateCourseAsync(id, request, cancellationToken);
+
+        return coures.IsSuccess ? Ok(coures.Value) : coures.ToProblem();
+    }
+
+    [HttpPut("Toggle_status{id}")]
+    public async Task<IActionResult> ToggleStatusCourse([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var course = await _CourseService.ToggleStatusAsync(id, cancellationToken);
+
+        return course.IsSuccess ? NoContent() : course.ToProblem();
+    }
+
     [HttpGet("get_by_instructor/{id}")]
     public async Task<IActionResult> GetCourseByinstructorId([FromRoute] Guid id, CancellationToken cancellationToken)
     {
@@ -33,48 +64,18 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
         return Course.IsSuccess ? Ok(Course.Value) : Course.ToProblem();
     }
 
-
-    [HttpGet("")]
-    public async Task<IActionResult> GetAllCourses()
-    {
-        var Course = await _CourseService.GetAllCoursesAsync();
-
-        return Ok(Course);
-    }
-
-
-    [HttpPost("")]
-    public async Task<IActionResult> CreateCourse([FromBody] CourseRequest request, CancellationToken cancellationToken)
-    {
-        var Instructor = await _CourseService.CreateCourseAsync(request, cancellationToken);
-
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
-    }
-
-
- 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCourse([FromRoute] Guid id, [FromBody] CourseRequest request, CancellationToken cancellationToken)
-    {
-        var coures =await  _CourseService.UpdateCourseAsync(id, request, cancellationToken);
-
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
-    }
-
-
-    [HttpPut("Toggle_status{id}")]
-    public async Task<IActionResult> ToggleStatusCourse([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var Instructor = await _CourseService.ToggleStatusAsync(id, cancellationToken);
-
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
-    }
-
-
-    [HttpGet("counts")]
+    [HttpGet("courses_structure")]
     public async Task<IActionResult> CountCoursesWithSectionsAndLessons( CancellationToken cancellationToken)
     {
-        var result = await _CourseService.GetCourseSectionLessonCounts( cancellationToken);
+        var result = await _CourseService.GetCoursesStructure( cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+
+    [HttpGet("course_structure/{id}")]
+    public async Task<IActionResult> CountCoursesWithSectionsAndLessons([FromRoute] Guid id,CancellationToken cancellationToken)
+    {
+        var result = await _CourseService.GetCourseStructureById(id,cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
@@ -88,7 +89,6 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
-
 
     [HttpGet("refude-counts")]
     public async Task<IActionResult> GetCourserefudeCounts(CancellationToken cancellationToken)

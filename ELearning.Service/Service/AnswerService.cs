@@ -22,19 +22,21 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
 
     public async Task<Result<AnswerResponse>> GetAnswerByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Answers = await _unitOfWork.Repository<Answer>()
-                                         .FindAsync(x => x.AnswerId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Answer = Answers.FirstOrDefault();
+        var answer = await _unitOfWork.Repository<Answer>()
+                                         .FirstOrDefaultAsync(x => x.AnswerId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Question)
+                                         , cancellationToken);
 
-        if (Answer is null)
+        if (answer is null)
             return Result.Failure<AnswerResponse>(AnswerErrors.AnswerNotFound);
 
-        var AnswerResponse = Answer.Adapt<AnswerResponse>();
+        var AnswerResponse = answer.Adapt<AnswerResponse>();
 
         return Result.Success(AnswerResponse);
     }
 
-    public async Task<Result<AnswerResponse>> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default)
     {
 
         if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
@@ -48,17 +50,17 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
 
         await _unitOfWork.Repository<Answer>().AddAsync(Answer, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(Answer.Adapt<AnswerResponse>());
+        return Result.Success();
     }
 
     public async Task<IEnumerable<AnswerResponse>> GetAllAnswersAsync(CancellationToken cancellationToken = default)
     {
         var Answers = await _unitOfWork.Repository<Answer>()
-            .FindAsync(
-                s => true,
-                cancellationToken: cancellationToken);
+                                         .FindAsync( x => true,
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Question)
+                                         , cancellationToken);
 
-        // Corrected typo: Use Adapt instead of Adabt
         return Answers.Adapt<IEnumerable<AnswerResponse>>();
     }
 

@@ -1,4 +1,5 @@
 ﻿using ELearning.Data.Contracts.Comment;
+using ELearning.Data.Entities;
 
 namespace ELearning.Api.Controllers;
 
@@ -12,46 +13,45 @@ public class CommentsController(ICommentService CommentService) : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCommentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Comment = await _CommentService.GetCommentByIdAsync(id, cancellationToken);
-
-        return Comment.IsSuccess ? Ok(Comment.Value) : Comment.ToProblem();
+        var comment = await _CommentService.GetCommentByIdAsync(id, cancellationToken);
+        return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
     }
 
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllComments()
     {
-        var Comment = await _CommentService.GetAllCommentsAsync();
+        var comment = await _CommentService.GetAllCommentsAsync();
 
-        return Ok(Comment);
+        return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
     }
 
 
     [HttpPost("")]
     public async Task<IActionResult> CreateComment([FromBody] CommentRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _CommentService.CreateCommentAsync(request, cancellationToken);
+        var comment = await _CommentService.CreateCommentAsync(request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return comment.IsSuccess ? Created() : comment.ToProblem();
     }
 
 
- 
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateComment([FromRoute] Guid id, [FromBody] CommentRequest request, CancellationToken cancellationToken)
     {
-        var coures =await  _CommentService.UpdateCommentAsync(id, request, cancellationToken);
+        var comment = await _CommentService.UpdateCommentAsync(id, request, cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+        return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
     }
 
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusComment([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Instructor = await _CommentService.ToggleStatusAsync(id, cancellationToken);
+        var comment = await _CommentService.ToggleStatusAsync(id, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return comment.IsSuccess ? NoContent() : comment.ToProblem();
     }
 
 
