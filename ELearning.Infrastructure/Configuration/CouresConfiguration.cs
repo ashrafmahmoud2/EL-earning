@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ELearning.Data.Entities;
+using System.Xml.Linq;
 
 namespace ELearning.Infrastructure.Configuration;
 public class CourseConfiguration : IEntityTypeConfiguration<Course>
@@ -27,34 +28,4 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
 }
 
-public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
-{
-    public void Configure(EntityTypeBuilder<Enrollment> builder)
-    {
-        builder.HasKey(e => e.EnrollmentId);
-
-        builder.HasOne(c => c.course)
-            .WithMany(x => x.Enrollments)
-            .HasForeignKey(x => x.CourseId);
-
-
-
-
-        builder.HasOne(c => c.student)
-            .WithMany(x => x.Enrollments)
-            .HasForeignKey(x => x.StudentId);
-            
-    }
-
-}
-public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
-{
-    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
-    {
-        builder.HasMany(u => u.Comments)
-               .WithOne(c => c.ApplicationUser)
-               .HasForeignKey(c => c.ApplicationUserId)
-               .HasPrincipalKey(u => u.Id); // Specify the principal key explicitly
-    }
-}
 

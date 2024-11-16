@@ -3,7 +3,6 @@
 
 - make the ApplictionDbcontext as interface like in section 41/4 in bookfiy.
 - just use CQRS In models user alot in db(Comments,Doucments).
-- make validation In all requests , With Add Configration.
 - make check if he input a forin key not found like .
 - cofing with strip payment https://github.com/stripe/stripe-dotnet Ask gpt
 - cofig to  foin key to new entity
@@ -39,7 +38,10 @@
 - see the Rep section in bookfiy
 - Guid in c# OR CREATE Vervier 7 the vido in code refectory
 - is ICollection in mkae fronie key , what it's,is it best prictec;
+-Is it importent to put the ForeignKey cofig if if oredy in the sql db
  
  
  */
+
+
 
