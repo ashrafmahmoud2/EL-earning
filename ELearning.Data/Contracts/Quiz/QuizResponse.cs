@@ -12,6 +12,7 @@ public record QuizResponse
     string? Description,
     bool IsActive,
     Guid LessonId,
+  //  string LessoneName
     string FirstName
 
 );

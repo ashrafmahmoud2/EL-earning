@@ -1,4 +1,6 @@
-﻿namespace ELearning.Data.Contracts.Document;
+﻿using ELearning.Data.Contracts.Enrollment;
+
+namespace ELearning.Data.Contracts.Document;
 
 public record DocumentRequest
 (

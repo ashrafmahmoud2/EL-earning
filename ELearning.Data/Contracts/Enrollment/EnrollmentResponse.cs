@@ -16,5 +16,6 @@ public record EnrollmentResponse(
     DateTime EnrolledAt,
     DateTime? CompletedAt,
     string Status
+    //string CreatedBy
 );
 

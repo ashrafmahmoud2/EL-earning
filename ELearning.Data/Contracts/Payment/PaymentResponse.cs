@@ -14,4 +14,7 @@ Guid StudentId,
 Guid CourseId,
 bool IsActive,
 string Status
+//guid EnrollmentId
+//strin StudentName
+//strin QouresName
 );

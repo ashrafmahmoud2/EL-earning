@@ -11,5 +11,7 @@ public record AnswerResponse
     string Text,
     bool IsCorrect,
     bool IsActive,
-    Guid QuestionId
+    Guid QuestionId,
+   string QuestionText,
+  string  CreatedBy
 );

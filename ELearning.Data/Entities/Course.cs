@@ -23,7 +23,6 @@ public class Course : AuditableEntity
     public Instructor Instructor { get; set; } = default!;
     public ICollection<Enrollment> Enrollments { get; set; } = [];
     public ICollection<Section> sections { get; set; } = [];
-   // public ICollection<Payment> Payments { get; set; } = [];
 }
 
 

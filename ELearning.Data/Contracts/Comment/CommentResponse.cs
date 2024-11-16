@@ -9,9 +9,10 @@ namespace ELearning.Data.Contracts.Comment;
 public record CommentResponse
 (
      Guid CommentId,
-     string Title,
+       string Title,
      string CommentText,
      Guid LessonId,
-     string ApplicationUserID,
+     string CommentedByUserId,
+     string CommentedBy,
      bool IsActive
 );

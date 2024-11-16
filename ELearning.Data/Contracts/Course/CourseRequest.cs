@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ELearning.Data.Contracts.Course;
 public record CourseRequest(
-    string Title,
+string Title,
     string Description,
     bool IsActive,
     string ShortDescription,
@@ -17,10 +17,10 @@ public record CourseRequest(
     string ThumbnailUrl,
     string TrailerVideoUrl,
     string Level,
-    List<string> Prerequisites,
-    List<string> LearningObjectives,
-    TimeSpan TotalTime
-);
+    List<string> Prerequisites = null!, 
+    List<string> LearningObjectives = null!, 
+    TimeSpan? TotalTime = null
+    );
 
 
 

@@ -7,19 +7,20 @@ using System.Threading.Tasks;
 namespace ELearning.Data.Contracts.Course;
 
 public record CourseResponse(
-    Guid CourseId,
-  string Title,
+   Guid CourseId,
+    string Title,
     string Description,
     bool IsActive,
     string ShortDescription,
     decimal Price,
-    string InstructorId,
-    string CategoryId,
+    Guid InstructorId,
+    string InstructorName,
+    Guid CategoryId,
     string ThumbnailUrl,
     string TrailerVideoUrl,
     string Level,
     List<string> Prerequisites,
     List<string> LearningObjectives,
-    TimeSpan TotalTime
+    TimeSpan? TotalTime  
 );
 

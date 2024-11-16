@@ -12,4 +12,5 @@ public record QuestionResponse
     int OrderIndex,
     bool IsActive,
     Guid QuizId
+    //string QuizTitle
 );

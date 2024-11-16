@@ -14,8 +14,8 @@ public record SectionResponse
  int OrderIndex,
  bool IsActive,
  Guid CourseId
-
-  //IEnumerable<Lesson> Lessons
-    );
+    //string counres Name
+//IEnumerable<Lesson> Lessons //cotain All Lesones id , name
+ );
 
 
