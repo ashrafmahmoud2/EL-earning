@@ -3,5 +3,5 @@
 public record QuizAttemptRequest(
     Guid QuizId,
     Guid StudentId,
-    List<QuestionAnswerResponse> QuestionAnswerResponse 
+    List<QuestionAnswerResponse> QuestionAnswerResponse
 );

@@ -9,7 +9,6 @@ public record SectionRequest
  string Description,
  Guid CourseId
 
-  // ICollection<Lesson> Lessons
+// ICollection<Lesson> Lessons
 );
-
 

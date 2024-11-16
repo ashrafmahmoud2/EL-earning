@@ -15,17 +15,3 @@ Guid CourseId,
 bool IsActive,
 string Status
 );
-
-public record PaymentRequest
-(
-
-Guid EnrollmentId,
-Guid StudentId,
-Guid CourseId
-);
-
-public record ReBackMonyResponse
-(
-Guid PaymentId,
-decimal Amount
-);

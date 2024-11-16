@@ -14,10 +14,3 @@ public record LessonResponse
     bool IsActive,
     Guid SectionId
 );
-
-public record LessonRequest
-(
-    string Title,
-    string Description,
-    Guid SectionId
-);
