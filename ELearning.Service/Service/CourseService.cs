@@ -9,6 +9,7 @@ using ELearning.Data.Entities;
 using ELearning.Data.Contracts.Course;
 using ELearning.Data.Errors;
 using ELearning.Data.Consts;
+using ELearning.Data.Contracts.Answer;
 namespace ELearning.Service.Service;
 
 public class CourseService : BaseRepository<Course>, ICourseService
@@ -69,6 +70,16 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
     public async Task<Result<CourseResponse>> CreateCourseAsync(CourseRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.InstructorId == request.InstructorId))
+            return Result.Failure<CourseResponse>(InstructorErrors.InstructorNotFound);
+
+         if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
+            return Result.Failure<CourseResponse>(CategoryErrors.CategoryNotFound);
+
+        
+
+
         if (request is null)
             Result.Failure(CourseErrors.CourseNotFound);
 
@@ -102,8 +113,16 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
     public async Task<Result> UpdateCourseAsync(Guid id, CourseRequest request, CancellationToken cancellationToken = default)
     {
-    //need to fix Handling Concurrency Conflicts
-    https://learn.microsoft.com/en-us/ef/core/saving/concurrency?tabs=data-annotations
+
+
+        if (!await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.InstructorId == request.InstructorId))
+            return Result.Failure<CourseResponse>(InstructorErrors.InstructorNotFound);
+
+        if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
+            return Result.Failure<CourseResponse>(CategoryErrors.CategoryNotFound);
+
+
+
         var course = await _unitOfWork.Repository<Course>()
                                          .FirstOrDefaultAsync(x => x.CourseId == id,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
@@ -111,11 +130,11 @@ public class CourseService : BaseRepository<Course>, ICourseService
         if (course is null)
             return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
 
+        //make adapt manoual or user mapping
 
         course = request.Adapt<Course>();
 
 
-        _unitOfWork.Repository<Course>().Attach(course);
         await _unitOfWork.Repository<Course>().UpdateAsync(course, cancellationToken);
 
         await _unitOfWork.CompleteAsync(cancellationToken);

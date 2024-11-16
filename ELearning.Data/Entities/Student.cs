@@ -11,10 +11,13 @@ public class Student : AuditableEntity
 
     public ApplicationUser User { get; set; } = default!;
 
+    public string UserId { get; set; } = string.Empty;
+
     public bool IsActive { get; set; } = true;
 
 
     public ICollection<Enrollment> Enrollments { get; set; } = [];
-     public ICollection<QuizAttempt> QuizAttempts { get; set; } = [];
+
+    public ICollection<QuizAttempt> QuizAttempts { get; set; } = [];
 }
 

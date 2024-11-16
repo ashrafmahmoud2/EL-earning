@@ -11,8 +11,11 @@ public class StudentRequestValidator : AbstractValidator<StudentRequest>
         RuleFor(x => x.LastName)
            .Length(2, 50)
            .NotEmpty();
+
         RuleFor(x => x.Email)
             .EmailAddress()
             .NotEmpty();
+
+
     }
 }

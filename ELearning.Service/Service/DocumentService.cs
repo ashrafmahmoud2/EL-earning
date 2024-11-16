@@ -7,6 +7,7 @@ using Mapster;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.Document;
 using ELearning.Data.Errors;
+using ELearning.Data.Contracts.Answer;
 namespace ELearning.Service.Service;
 
 public class DocumentService : BaseRepository<Document>, IDocumentService
@@ -36,6 +37,10 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
 
     public async Task<Result<DocumentResponse>> CreateDocumentAsync(DocumentRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<DocumentResponse>(LessonErrors.LessonNotFound);
+
         if (request is null)
             Result.Failure(DocumentErrors.DocumentNotFound);
 
@@ -59,6 +64,9 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
 
     public async Task<Result<DocumentResponse>> UpdateDocumentAsync(Guid DocumentId, DocumentRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<DocumentResponse>(LessonErrors.LessonNotFound);
+
 
         var Document = await _unitOfWork.Repository<Document>()
                                          .FirstOrDefaultAsync(x => x.DocumentId == DocumentId,

@@ -36,11 +36,15 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
 
     public async Task<Result<AnswerResponse>> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
+            return Result.Failure<AnswerResponse>(QuestionErrors.QuestionNotFound);
+
         if (request is null)
             Result.Failure(AnswerErrors.AnswerNotFound);
         var Answer = request.Adapt<Answer>();
 
-       
+
 
         await _unitOfWork.Repository<Answer>().AddAsync(Answer, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
@@ -60,6 +64,9 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
 
     public async Task<Result<AnswerResponse>> UpdateAnswerAsync(Guid AnswerId, AnswerRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
+            return Result.Failure<AnswerResponse>(QuestionErrors.QuestionNotFound);
 
         var Answer = await _unitOfWork.Repository<Answer>()
                                          .FirstOrDefaultAsync(x => x.AnswerId == AnswerId,
@@ -87,7 +94,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
         Answer.IsCorrect = request.IsCorrect;
 
 
-      
+
         await _unitOfWork.Repository<Answer>().UpdateAsync(Answer, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
@@ -110,7 +117,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
         return Result.Success();
     }
 
- 
+
 }
 
 

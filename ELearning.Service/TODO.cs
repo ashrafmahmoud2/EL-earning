@@ -3,9 +3,7 @@
 
 - make the ApplictionDbcontext as interface like in section 41/4 in bookfiy.
 - just use CQRS In models user alot in db(Comments,Doucments).
-- make check if he input a forin key not found like .
 - cofing with strip payment https://github.com/stripe/stripe-dotnet Ask gpt
-- cofig to  foin key to new entity
 - End Point To Update Index in Section,lessone,queiz,questions
 - revivew all respone then do mapping ;
 - DO All steps in project steps
@@ -28,6 +26,7 @@
  -  fix the documation of swagger ui
  - Add Mapping EnrollmentResponse for sudent and coures Name
  - fix get all enrollmetn 
+- instructo create request
  
 
 
@@ -39,8 +38,17 @@
 - Guid in c# OR CREATE Vervier 7 the vido in code refectory
 - is ICollection in mkae fronie key , what it's,is it best prictec;
 -Is it importent to put the ForeignKey cofig if if oredy in the sql db
- 
- 
+
+
+  if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
+            return Result.Failure<AnswerResponse>(QuestionErrors.QuestionNotFound);
+{
+  "email": "johndoe@example.com",
+  "password": "SecurePassword123!",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
  */
 
 

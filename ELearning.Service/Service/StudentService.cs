@@ -14,6 +14,9 @@ using ELearning.Data.Errors;
 using ELearning.Infrastructure;
 using ELearning.Data.Contracts.Students;
 using Mapster;
+using Azure.Core;
+using ELearning.Data.Contracts.Comment;
+using Mailjet.Client.Resources;
 namespace ELearning.Service.Service;
 
 public class StudentService : BaseRepository<Student>, IStudentService
@@ -44,6 +47,9 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
     public async Task<Result<StudentResponse>> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
+            return Result.Failure<StudentResponse>(UserErrors.UserNotFound);
+
         if (user is null)
             Result.Failure(StudentErrors.StudentNotFound);
 
@@ -83,6 +89,8 @@ include: q => q.Include(s => s.CreatedBy).Include(s => s.User),
 
     public async Task<Result<StudentResponse>> UpdateStudentAsync(Guid id, StudentRequest request, CancellationToken cancellationToken = default)
     {
+   
+
         var students = await _unitOfWork.Repository<Student>()
                                          .FindAsync(x => x.StudentId == id,
                                          q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);

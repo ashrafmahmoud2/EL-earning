@@ -7,6 +7,7 @@ using Mapster;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.Quiz;
 using ELearning.Data.Errors;
+using ELearning.Data.Contracts.Question;
 namespace ELearning.Service.Service;
 
 public class  QuizService : BaseRepository< Quiz>, IQuizService
@@ -36,6 +37,10 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
 
     public async Task<Result< QuizResponse>> CreateQuizAsync(QuizRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
+
+
         if (request is null)
             Result.Failure( QuizErrors. QuizNotFound);
 
@@ -59,6 +64,9 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
 
     public async Task<Result< QuizResponse>> UpdateQuizAsync(Guid quizId,  QuizRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
+
 
         var quiz = await _unitOfWork.Repository<Quiz>()
                                          .FirstOrDefaultAsync(x => x.QuizId == quizId,

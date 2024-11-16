@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using ELearning.Data.Entities;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
@@ -24,7 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Category> Categorys { get; set; }
     public DbSet<Course> Courses { get; set; }
     public DbSet<Enrollment> Enrollment { get; set; }
-
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Section> Sections { get; set; }
     public DbSet<Lesson> Lessons { get; set; }
     public DbSet<Quiz> Quizs { get; set; }

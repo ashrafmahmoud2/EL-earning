@@ -8,6 +8,7 @@ using ELearning.Service.IService;
 using ELearning.Data.Contracts.Comment;
 using ELearning.Data.Errors;
 using System.Xml.Linq;
+using ELearning.Data.Contracts.Answer;
 namespace ELearning.Service.Service;
 
 public class CommentService : BaseRepository<Comment>, ICommentService
@@ -24,7 +25,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
     public async Task<Result<CommentResponse>> GetCommentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var Comments = await _unitOfWork.Repository<Comment>()
-                                         .FindAsync(x => x.CommentId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
+                                         .FindAsync(x => x.CommentId == id);
         var Comment = Comments.FirstOrDefault();
 
         if (Comment is null)
@@ -37,12 +38,19 @@ public class CommentService : BaseRepository<Comment>, ICommentService
 
     public async Task<Result<CommentResponse>> CreateCommentAsync(CommentRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<CommentResponse>(LessonErrors.LessonNotFound);
+
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
+            return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
+
         if (request is null)
             Result.Failure(CommentErrors.CommentNotFound);
 
 
         var comment = request.Adapt<Comment>();
-        comment.ApplicationUserId = request.ApplicationUserID;
+        comment.CommentedByUserId = request.ApplicationUserID;
 
         await _unitOfWork.Repository<Comment>().AddAsync(comment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
@@ -61,10 +69,16 @@ public class CommentService : BaseRepository<Comment>, ICommentService
 
     public async Task<Result<CommentResponse>> UpdateCommentAsync(Guid CommentId, CommentRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
+            return Result.Failure<CommentResponse>(LessonErrors.LessonNotFound);
+
+           if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
+            return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
+
+
 
         var Comment = await _unitOfWork.Repository<Comment>()
-                                         .FirstOrDefaultAsync(x => x.CommentId == CommentId,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
+                                         .FirstOrDefaultAsync(x => x.CommentId == CommentId);
 
         if (Comment is null)
             return Result.Failure<CommentResponse>(CommentErrors.CommentNotFound);
@@ -84,7 +98,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var Comments = await _unitOfWork.Repository<Comment>()
-                                           .FindAsync(x => x.CommentId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
+                                           .FindAsync(x => x.CommentId == id);
         var Comment = Comments.FirstOrDefault();
 
         if (Comment is null)

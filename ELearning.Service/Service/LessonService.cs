@@ -7,6 +7,8 @@ using ELearning.Infrastructure;
 using Mapster;
 using ELearning.Data.Contracts.Lesson;
 using ELearning.Data.Errors;
+using ELearning.Data.Contracts.Instrctors;
+using Mailjet.Client.Resources;
 namespace ELearning.Service.Service;
 
 public class LessonService : BaseRepository<Lesson>, ILessonService
@@ -37,6 +39,11 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
     public async Task<Result<LessonResponse>> CreateLessonAsync(LessonRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId ==request.SectionId))
+            return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
+
+
         if (request is null)
             Result.Failure(LessonErrors.LessonNotFound);
 
@@ -67,7 +74,9 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
     public async Task<Result<LessonResponse>> UpdateLessonAsync(Guid id, LessonRequest request, CancellationToken cancellationToken = default)
     {
-        
+        if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId == request.SectionId))
+            return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
+
         var Lessons = await _unitOfWork.Repository<Lesson>()
                                          .FindAsync(x => x.LessonId == id,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);

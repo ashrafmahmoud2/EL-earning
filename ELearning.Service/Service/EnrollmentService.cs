@@ -10,6 +10,7 @@ using ELearning.Service.IService;
 using ELearning.Data.Contracts.Payment;
 using ELearning.Data.Consts;
 using Azure.Core;
+using ELearning.Data.Contracts.Answer;
 namespace ELearning.Service.Service;
 
 public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
@@ -67,6 +68,13 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
     public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
+            return Result.Failure<EnrollmentResponse>(StudentErrors.StudentNotFound);
+
+        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
+            return Result.Failure<EnrollmentResponse>(CourseErrors.CourseNotFound);
+
+
         if (request is null)
             return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
@@ -122,6 +130,11 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
     public async Task<Result<EnrollmentResponse>> UpdateEnrollmentAsync(Guid enrollmentId, EnrollmentUpdateRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
+            return Result.Failure<EnrollmentResponse>(StudentErrors.StudentNotFound);
+
+        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
+            return Result.Failure<EnrollmentResponse>(CourseErrors.CourseNotFound);
 
         var enrollment = await _unitOfWork.Repository<Enrollment>()
                                          .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);

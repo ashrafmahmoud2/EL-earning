@@ -9,9 +9,9 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
     public void Configure(EntityTypeBuilder<Lesson> builder)
     {
 
-        builder.HasOne<Section>()
-            .WithMany(s => s.Lessons)
-            .HasForeignKey(x => x.SectionId);
+        //builder.HasOne<Section>()
+        //    .WithMany(s => s.Lessons)
+        //    .HasForeignKey(x => x.SectionId);
 
 
 

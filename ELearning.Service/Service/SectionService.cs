@@ -8,6 +8,8 @@ using ELearning.Data.Contracts.Section;
 using ELearning.Data.Errors;
 using static System.Collections.Specialized.BitVector32;
 using Section = ELearning.Data.Entities.Section;
+using ELearning.Data.Contracts.QuizAttempt;
+using ELearning.Data.Entities;
 namespace ELearning.Service.Service;
 
 public class SectionService : BaseRepository<Section>, ISectionService
@@ -38,6 +40,12 @@ public class SectionService : BaseRepository<Section>, ISectionService
 
     public async Task<Result<SectionResponse>> CreateSectionAsync(SectionRequest request, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
+            return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
+
+        
+
         if (request is null)
             Result.Failure(SectionErrors.SectionNotFound);
 
@@ -68,7 +76,10 @@ public class SectionService : BaseRepository<Section>, ISectionService
 
     public async Task<Result<SectionResponse>> UpdateSectionAsync(Guid id, SectionRequest request, CancellationToken cancellationToken = default)
     {
-        
+
+        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
+            return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
+
         var Sections = await _unitOfWork.Repository<Section>()
                                          .FindAsync(x => x.SectionId == id,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);

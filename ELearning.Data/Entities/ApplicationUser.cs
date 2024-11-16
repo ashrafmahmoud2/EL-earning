@@ -23,5 +23,8 @@ public class ApplicationUser : IdentityUser
     public ICollection<Comment> Comments { get; set; } = [];
 
 
+  //  public ICollection<Student> Students { get; set; } = [];
+
+
 }
 

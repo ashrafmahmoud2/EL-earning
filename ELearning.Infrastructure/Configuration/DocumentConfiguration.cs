@@ -10,9 +10,9 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
     {
         builder.HasIndex(x => new { x.Title, x.DocumentPath }).IsUnique(); ;
 
-        builder.HasOne<Lesson>()
-              .WithMany(l => l.Documents)
-              .HasForeignKey(x => x.LessonId);
+        //builder.HasOne(d => d.Lesson)
+        //    .WithMany(l => l.Documents)
+        //      .HasForeignKey(x => x.LessonId);
 
 
     }

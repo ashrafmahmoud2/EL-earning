@@ -7,6 +7,7 @@ using Mapster;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Errors;
+using ELearning.Data.Contracts.Quiz;
 namespace ELearning.Service.Service;
 
 public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptService
@@ -36,6 +37,13 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
     public async Task<Result<QuizAttemptResponse>> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
+            return Result.Failure<QuizAttemptResponse>(QuizErrors.QuizNotFound);
+        
+        if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
+            return Result.Failure<QuizAttemptResponse>(StudentErrors.StudentNotFound);
+
+
         if (request is null)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
 
@@ -58,6 +66,12 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
     public async Task<Result<QuizAttemptResponse>> UpdateQuizAttemptAsync(Guid quizAttemptId, QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
+            return Result.Failure<QuizAttemptResponse>(QuizErrors.QuizNotFound);
+
+        if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
+
+            return Result.Failure<QuizAttemptResponse>(StudentErrors.StudentNotFound);
         var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
             .FirstOrDefaultAsync(x => x.QuizAttemptId == quizAttemptId, cancellationToken: cancellationToken);
 

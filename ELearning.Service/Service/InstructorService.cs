@@ -9,6 +9,8 @@ using ELearning.Infrastructure;
 using Mapster;
 using ELearning.Data.Contracts.Students;
 using ELearning.Data.Contracts.Instrctors;
+using ELearning.Data.Contracts.Comment;
+using Mailjet.Client.Resources;
 namespace ELearning.Service.Service;
 
 public class InstructorService : BaseRepository<Instructor>, IInstructorService
@@ -69,6 +71,12 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
     public async Task<Result<InstructorResponse>> CreateInstructorAsync(ApplicationUser user, InstructorRequest request, CancellationToken cancellationToken = default)
     {
+
+
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
+            return Result.Failure<InstructorResponse>(UserErrors.UserNotFound);
+        
+
         if (request is null)
             Result.Failure(InstructorErrors.InstructorNotFound);
 
@@ -104,6 +112,9 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
     public async Task<Result> UpdateInstructorAsync(Guid id, InstructorRequest request, CancellationToken cancellationToken = default)
     {
+        
+
+
         var instructors = await _unitOfWork.Repository<Instructor>()
                                          .FindAsync(x => x.InstructorId == id,
                                          q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);

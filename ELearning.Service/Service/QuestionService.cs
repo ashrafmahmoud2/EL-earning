@@ -8,6 +8,7 @@ using ELearning.Service.IService;
 using ELearning.Data.Errors;
 using static System.Collections.Specialized.BitVector32;
 using ELearning.Data.Contracts.Question;
+using ELearning.Data.Contracts.Payment;
 namespace ELearning.Service.Service;
 
 public class QuestionService : BaseRepository<Question>, IQuestionService
@@ -37,6 +38,9 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
 
     public async Task<Result<QuestionResponse>> CreateQuestionAsync(QuestionRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
+            return Result.Failure<QuestionResponse>(QuizErrors.QuizNotFound);
+
         if (request is null)
             Result.Failure(QuestionErrors.QuestionNotFound);
         var question = request.Adapt<Question>();
@@ -61,6 +65,9 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
 
     public async Task<Result<QuestionResponse>> UpdateQuestionAsync(Guid QuestionId, QuestionRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
+            return Result.Failure<QuestionResponse>(QuizErrors.QuizNotFound);
+
 
         var Question = await _unitOfWork.Repository<Question>()
                                          .FirstOrDefaultAsync(x => x.QuestionId == QuestionId,

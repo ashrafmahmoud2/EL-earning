@@ -8,6 +8,8 @@ using ELearning.Service.IService;
 using ELearning.Data.Contracts.Payment;
 using ELearning.Data.Errors;
 using ELearning.Data.Consts;
+using ELearning.Data.Contracts.Answer;
+using Azure.Core;
 namespace ELearning.Service.Service;
 
 public class PaymentService : BaseRepository<Payment>, IPaymentService
@@ -39,6 +41,10 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
     public async Task<Result<PaymentResponse>> CreatePaymentAsync(PaymentRequest request, string paymentStatus, CancellationToken cancellationToken = default)
     {
+
+        if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+
         if (request is null)
             return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
 
@@ -84,6 +90,9 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
     public async Task<Result<PaymentResponse>> UpdatePaymentAsync(Guid paymentId, string paymentStatus, PaymentRequest request, CancellationToken cancellationToken = default)
     {
+        if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+
         var payment = await _unitOfWork.Repository<Payment>().FirstOrDefaultAsync(x => x.PaymentId == paymentId);
 
         if (payment is null)
@@ -111,6 +120,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
     public async Task<Result<ReBackMonyResponse>> RefundPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
+       
         var payment = await _unitOfWork.Repository<Payment>()
                                          .FirstOrDefaultAsync(x => x.PaymentId == paymentId,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
