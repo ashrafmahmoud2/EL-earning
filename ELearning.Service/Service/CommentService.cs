@@ -31,7 +31,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
                                          cancellationToken);
 
         if (comment is null)
-            return Result.Failure<CommentResponse>(CommentErrors.CommentNotFound);
+            return Result.Failure<CommentResponse>(CommentsErrors.NotFound);
 
         var CommentResponse = comment.Adapt<CommentResponse>();
 
@@ -42,16 +42,16 @@ public class CommentService : BaseRepository<Comment>, ICommentService
     {
 
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<CommentResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<CommentResponse>(LessonsErrors.NotFound);
 
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
-            return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
+            return Result.Failure<CommentResponse>(UserErrors.NotFound);
 
         if (await _unitOfWork.Repository<Comment>().AnyAsync(x => x.LessonId == request.LessonId && x.ApplicationUser.Id == request.ApplicationUserID && x.Title == request.Title && x.CommentText == request.CommentText))
-            return Result.Failure<CommentResponse>(CommentErrors.DuplicatedComment);
+            return Result.Failure<CommentResponse>(CommentsErrors.DuplicatedComment);
 
         if (request is null)
-            Result.Failure(CommentErrors.CommentNotFound);
+            Result.Failure(CommentsErrors.NotFound);
 
 
         var comment = request.Adapt<Comment>();
@@ -78,10 +78,10 @@ public class CommentService : BaseRepository<Comment>, ICommentService
     public async Task<Result<CommentResponse>> UpdateCommentAsync(Guid CommentId, CommentRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<CommentResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<CommentResponse>(LessonsErrors.NotFound);
 
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
-            return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
+            return Result.Failure<CommentResponse>(UserErrors.NotFound);
 
 
 
@@ -91,7 +91,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
                                          ,cancellationToken);
 
         if (Comment is null)
-            return Result.Failure<CommentResponse>(CommentErrors.CommentNotFound);
+            return Result.Failure<CommentResponse>(CommentsErrors.NotFound);
 
 
         Comment.IsEdited = true;
@@ -112,7 +112,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         var Comment = Comments.FirstOrDefault();
 
         if (Comment is null)
-            return Result.Failure(CommentErrors.CommentNotFound);
+            return Result.Failure(CommentsErrors.NotFound);
 
         Comment.IsActive = !Comment.IsActive;
 

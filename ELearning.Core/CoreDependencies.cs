@@ -10,7 +10,7 @@ public static class CoreDependencies
     {
 
         // Configuration of MediatR
-        services.AddMediatR(Assembly.GetExecutingAssembly());
+      //  services.AddMediatR(Assembly.GetExecutingAssembly());
 
         // Configuration of AutoMapper
         services.AddAutoMapper(Assembly.GetExecutingAssembly());

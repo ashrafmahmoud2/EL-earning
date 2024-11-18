@@ -32,7 +32,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
                                           cancellationToken);
 
         if (quizAttempt is null)
-            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
+            return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.NotFound);
 
         return Result.Success(quizAttempt.Adapt<QuizAttemptResponse>());
     }
@@ -55,20 +55,20 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
     public async Task<Result> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
-            return Result.Failure<QuizAttemptResponse>(QuizErrors.QuizNotFound);
+            return Result.Failure<QuizAttemptResponse>(QuizsErrors.NotFound);
         
         if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
-            return Result.Failure<QuizAttemptResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<QuizAttemptResponse>(StudentsErrors.NotFound);
 
 
         if (request is null)
-            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
+            return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.NotFound);
 
         bool quizAttemptExists = await _unitOfWork.Repository<QuizAttempt>()
             .AnyAsync(x => x.StudentId == request.StudentId && x.QuizId == request.QuizId, cancellationToken);
 
         if (quizAttemptExists)
-            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.DuplicatedQuizAttempt);
+            return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.DuplicatedQuizAttempt);
 
         // Adapt the request to a QuizAttempt entity
         var quizAttempt = request.Adapt<QuizAttempt>();
@@ -84,16 +84,16 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
     public async Task<Result<QuizAttemptResponse>> UpdateQuizAttemptAsync(Guid quizAttemptId, QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
-            return Result.Failure<QuizAttemptResponse>(QuizErrors.QuizNotFound);
+            return Result.Failure<QuizAttemptResponse>(QuizsErrors.NotFound);
 
         if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
 
-            return Result.Failure<QuizAttemptResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<QuizAttemptResponse>(StudentsErrors.NotFound);
         var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
             .FirstOrDefaultAsync(x => x.QuizAttemptId == quizAttemptId, cancellationToken: cancellationToken);
 
         if (quizAttempt is null)
-            return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
+            return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.NotFound);
 
         // Update quiz attempt stats with the new answers
         await CalculateQuizAttemptStatsAsync(quizAttempt, request, cancellationToken);
@@ -142,7 +142,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         var QuizAttempt = QuizAttempts.FirstOrDefault();
 
         if (QuizAttempt is null)
-            return Result.Failure(QuizAttemptErrors.QuizAttemptNotFound);
+            return Result.Failure(QuizAttemptsErrors.NotFound);
 
         QuizAttempt.IsActive = !QuizAttempt.IsActive;
 

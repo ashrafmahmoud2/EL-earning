@@ -39,7 +39,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
         if (course is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<CourseResponse>(CoursesErrors.NotFound);
 
         var courseResponse = course.Adapt<CourseResponse>();
 
@@ -66,19 +66,19 @@ public class CourseService : BaseRepository<Course>, ICourseService
     {
 
         if (await _unitOfWork.Repository<Course>().AnyAsync(x => x.Title == request.Title))
-            return Result.Failure<CourseResponse>(CourseErrors.DuplicatedCourse);
+            return Result.Failure<CourseResponse>(CoursesErrors.DuplicatedCourse);
 
         if (!await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.InstructorId == request.InstructorId))
-            return Result.Failure<CourseResponse>(InstructorErrors.InstructorNotFound);
+            return Result.Failure<CourseResponse>(InstructorsErrors.InstructorNotFound);
 
         if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
-            return Result.Failure<CourseResponse>(CategoryErrors.CategoryNotFound);
+            return Result.Failure<CourseResponse>(CategorysErrors.CategoryNotFound);
 
 
 
 
         if (request is null)
-            Result.Failure(CourseErrors.CourseNotFound);
+            Result.Failure(CoursesErrors.NotFound);
 
       
 
@@ -95,10 +95,10 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
         if (!await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.InstructorId == request.InstructorId))
-            return Result.Failure<CourseResponse>(InstructorErrors.InstructorNotFound);
+            return Result.Failure<CourseResponse>(InstructorsErrors.InstructorNotFound);
 
         if (!await _unitOfWork.Repository<Category>().AnyAsync(x => x.CategoryId == request.CategoryId))
-            return Result.Failure<CourseResponse>(CategoryErrors.CategoryNotFound);
+            return Result.Failure<CourseResponse>(CategorysErrors.CategoryNotFound);
 
 
 
@@ -109,7 +109,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
                                           cancellationToken);
 
         if (course is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<CourseResponse>(CoursesErrors.NotFound);
 
 
     
@@ -129,7 +129,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
         var Course = Courses.FirstOrDefault();
 
         if (Course is null)
-            return Result.Failure(CourseErrors.CourseNotFound);
+            return Result.Failure(CoursesErrors.NotFound);
 
         Course.IsActive = !Course.IsActive;
 
@@ -148,7 +148,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
                                   cancellationToken);
 
         if (course is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<CourseResponse>(CoursesErrors.NotFound);
 
         var courseResponse = course.Adapt<CourseResponse>();
 
@@ -166,7 +166,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
                                    cancellationToken);
 
         if (course is null)
-            return Result.Failure<CourseResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<CourseResponse>(CoursesErrors.NotFound);
 
         var courseResponse = course.Adapt<CourseResponse>();
 
@@ -209,7 +209,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         if (courseSectionLessonCount == null)
         {
-            return Result.Failure<CourseSectionLessonCountResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<CourseSectionLessonCountResponse>(CoursesErrors.NotFound);
         }
 
         return Result.Success(courseSectionLessonCount);

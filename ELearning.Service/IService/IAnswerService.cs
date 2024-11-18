@@ -10,5 +10,6 @@ public interface IAnswerService
     Task<Result> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default);
     Task<Result<AnswerResponse>> UpdateAnswerAsync(Guid id, AnswerRequest request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result> DeleteAnswerAsync(Guid id, CancellationToken cancellationToken = default);
 }
 

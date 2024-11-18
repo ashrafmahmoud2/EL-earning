@@ -1,12 +1,8 @@
-﻿using ELearning.Data.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ELearning.Data.Contracts.Lesson;
 
 namespace ELearning.Data.Contracts.Section;
-public record SectionResponse
+
+public record SectionWithLessonsResponse
 (
  Guid SectionId,
  string Title,
@@ -15,6 +11,7 @@ public record SectionResponse
  bool IsActive,
  Guid CourseId,
  string CourseTitle,
+IEnumerable<LessonResponse> Lessons ,
 string CreatedBy
  );
 

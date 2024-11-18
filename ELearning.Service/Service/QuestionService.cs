@@ -31,7 +31,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
                                                 , cancellationToken);
 
         if (question is null)
-            return Result.Failure<QuestionResponse>(QuestionErrors.QuestionNotFound);
+            return Result.Failure<QuestionResponse>(QuestionsErrors.NotFound);
 
         var questionResponse = question.Adapt<QuestionResponse>();
 
@@ -53,10 +53,10 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
     public async Task<Result> CreateQuestionAsync(QuestionRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
-            return Result.Failure<QuestionResponse>(QuizErrors.QuizNotFound);
+            return Result.Failure<QuestionResponse>(QuizsErrors.NotFound);
 
         if (request is null)
-            Result.Failure(QuestionErrors.QuestionNotFound);
+            Result.Failure(QuestionsErrors.NotFound);
         var question = request.Adapt<Question>();
 
         question.OrderIndex = await GetNextOrderIndexForQuestionAsync(question.QuizId, cancellationToken);
@@ -69,7 +69,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
     public async Task<Result<QuestionResponse>> UpdateQuestionAsync(Guid questionId, QuestionRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
-            return Result.Failure<QuestionResponse>(QuizErrors.QuizNotFound);
+            return Result.Failure<QuestionResponse>(QuizsErrors.NotFound);
 
 
         var question = await _unitOfWork.Repository<Question>()
@@ -79,7 +79,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
                                                , cancellationToken);
 
         if (question is null)
-            return Result.Failure<QuestionResponse>(QuestionErrors.QuestionNotFound);
+            return Result.Failure<QuestionResponse>(QuestionsErrors.NotFound);
 
 
         question.Text = request.Text;
@@ -100,7 +100,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
                                                 , cancellationToken);
 
         if (question is null)
-            return Result.Failure(QuestionErrors.QuestionNotFound);
+            return Result.Failure(QuestionsErrors.NotFound);
 
         question.IsActive = !question.IsActive;
 

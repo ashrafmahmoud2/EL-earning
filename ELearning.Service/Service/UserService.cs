@@ -56,7 +56,7 @@ public class UserService(UserManager<ApplicationUser> userManager,
     public async Task<Result<UserResponse>> GetAsync(string id)
     {
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure<UserResponse>(UserErrors.UserNotFound);
+            return Result.Failure<UserResponse>(UserErrors.NotFound);
 
         var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -112,7 +112,7 @@ public class UserService(UserManager<ApplicationUser> userManager,
             return Result.Failure(UserErrors.InvalidRoles);
 
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure(UserErrors.UserNotFound);
+            return Result.Failure(UserErrors.NotFound);
 
         //we add mapping to make userName = email mappingconfiguratons.cs
         user = request.Adapt(user);
@@ -141,7 +141,7 @@ public class UserService(UserManager<ApplicationUser> userManager,
     public async Task<Result> ToggleStatus(string id)
     {
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure(UserErrors.UserNotFound);
+            return Result.Failure(UserErrors.NotFound);
 
         user.IsDisabled = !user.IsDisabled;
 
@@ -158,7 +158,7 @@ public class UserService(UserManager<ApplicationUser> userManager,
     public async Task<Result> Unlock(string id)
     {
         if (await _userManager.FindByIdAsync(id) is not { } user)
-            return Result.Failure(UserErrors.UserNotFound);
+            return Result.Failure(UserErrors.NotFound);
 
         var result = await _userManager.SetLockoutEndDateAsync(user, null);
 

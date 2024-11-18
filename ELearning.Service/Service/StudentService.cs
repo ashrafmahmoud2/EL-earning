@@ -9,7 +9,6 @@ using ELearning.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using ELearning.Data.Abstractions.ResultPattern;
-
 using ELearning.Data.Errors;
 using ELearning.Infrastructure;
 using ELearning.Data.Contracts.Students;
@@ -17,6 +16,9 @@ using Mapster;
 using Azure.Core;
 using ELearning.Data.Contracts.Comment;
 using Mailjet.Client.Resources;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace ELearning.Service.Service;
 
 public class StudentService : BaseRepository<Student>, IStudentService
@@ -33,25 +35,40 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
     public async Task<Result<StudentResponse>> GetStudentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var students = await _unitOfWork.Repository<Student>()
-                                         .FindAsync(x => x.StudentId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var student = students.FirstOrDefault();
+        var student = await _unitOfWork.Repository<Student>()
+                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                                .Include(x => x.User)
+                                         , cancellationToken);
 
         if (student is null)
-            return Result.Failure<StudentResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<StudentResponse>(StudentsErrors.NotFound);
 
         var studentResponse = student.Adapt<StudentResponse>();
 
         return Result.Success(studentResponse);
     }
 
-    public async Task<Result<StudentResponse>> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<StudentResponse>> GetAllStudentsAsync(CancellationToken cancellationToken = default)
+    {
+
+        var students = await _unitOfWork.Repository<Student>()
+            .FindAsync(
+                s => true,
+                 q => q.Include(s => s.CreatedBy)
+                 .Include(s => s.User),
+                cancellationToken: cancellationToken);
+
+        return students.Adapt<IEnumerable<StudentResponse>>();
+    }
+
+    public async Task<Result> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
-            return Result.Failure<StudentResponse>(UserErrors.UserNotFound);
+            return Result.Failure<StudentResponse>(UserErrors.NotFound);
 
         if (user is null)
-            Result.Failure(StudentErrors.StudentNotFound);
+            Result.Failure(StudentsErrors.NotFound);
 
         var student = new Student()
         {
@@ -59,48 +76,22 @@ public class StudentService : BaseRepository<Student>, IStudentService
         };
         await _unitOfWork.Repository<Student>().AddAsync(student, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(student.Adapt<StudentResponse>());
-    }
-
-    public async Task<IEnumerable<StudentResponse>> GetAllStudentsAsync(CancellationToken cancellationToken = default)
-    {
-
-
-        var students = await _unitOfWork.Repository<Student>()
-            .FindAsync(
-                s => true,
-include: q => q.Include(s => s.CreatedBy).Include(s => s.User),
-                cancellationToken: cancellationToken);
-
-
-
-
-        return students.Select(s => new StudentResponse(
-       StudentId: s.StudentId,
-       StudentName: s.User != null ? s.User.FirstName + " " + s.User.LastName : "Unknown",
-       CreatedBy: s.CreatedBy.FirstName + " " + s.CreatedBy.LastName,
-       CreatedOn: s.CreatedOn,
-      Email: s.User?.Email ?? "No Email",
-            IsActive: s.IsActive
-
-   )).ToList();
-
+        return Result.Success();
     }
 
     public async Task<Result<StudentResponse>> UpdateStudentAsync(Guid id, StudentRequest request, CancellationToken cancellationToken = default)
     {
-   
-
-        var students = await _unitOfWork.Repository<Student>()
-                                         .FindAsync(x => x.StudentId == id,
-                                         q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);
-        var student = students.FirstOrDefault();
+        var student = await _unitOfWork.Repository<Student>()
+                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                                .Include(x => x.User)
+                                         , cancellationToken);
 
         if (student.User is null)
-            return Result.Failure<StudentResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<StudentResponse>(StudentsErrors.NotFound);
 
         if (await _unitOfWork.Repository<Student>().AnyAsync(x => x.User.Email == request.Email && x.StudentId != id, cancellationToken))
-            return Result.Failure<StudentResponse>(StudentErrors.DuplicatedStudent);
+            return Result.Failure<StudentResponse>(StudentsErrors.DuplicatedStudent);
 
         // Update student details
         student.User.FirstName = request.FirstName;
@@ -108,28 +99,108 @@ include: q => q.Include(s => s.CreatedBy).Include(s => s.User),
         student.User.Email = request.Email;
         student.User.UserName = request.Email;
 
-       await _unitOfWork.Repository<Student>().UpdateAsync(student,cancellationToken);
-       await _unitOfWork.CompleteAsync(cancellationToken);
+        await _unitOfWork.Repository<Student>().UpdateAsync(student, cancellationToken);
+        await _unitOfWork.CompleteAsync(cancellationToken);
 
         return Result.Success(student.Adapt<StudentResponse>());
     }
 
-
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var instructors = await _unitOfWork.Repository<Student>()
-                                           .FindAsync(x => x.StudentId == id, q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);
-        var instructor = instructors.FirstOrDefault();
+        var student = await _unitOfWork.Repository<Student>()
+                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                                .Include(x => x.User)
+                                         , cancellationToken);
 
-        if (instructor is null)
-            return Result.Failure(StudentErrors.StudentNotFound);
+        if (student is null)
+            return Result.Failure(StudentsErrors.NotFound);
 
-        instructor.IsActive = !instructor.IsActive;
+        student.IsActive = !student.IsActive;
 
         // Save changes to the database
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return Result.Success();
+    }
+
+    public async Task<Result> DeleteStudentAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var student = await _unitOfWork.Repository<Student>()
+                .FirstOrDefaultAsync(
+                    x => x.StudentId == id,
+                    q => q.Include(x => x.CreatedBy)
+                          .Include(x => x.User),
+                    cancellationToken);
+
+            if (student is null)
+            {
+                return Result.Failure(StudentsErrors.NotFound);
+            }
+
+            // Delete related user if exists
+            if (student.User != null)
+            {
+                await _unitOfWork.Repository<ApplicationUser>().RemoveAsync(student.User, cancellationToken);
+            }
+
+            // Delete the student record
+            await _unitOfWork.Repository<Student>().RemoveAsync(student, cancellationToken);
+
+            // Commit transaction
+            await _unitOfWork.CompleteAsync(cancellationToken);
+
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
+        {
+            //stop in make the why error genric;
+            var sqlErrorMessage = sqlEx.Message ?? "Foreign key violation occurred.";
+
+            var allTablesInDb = GetAllTablesInDb();
+            string foreignKeyTable = null;
+
+            foreach (var table in allTablesInDb)
+            {
+                if (sqlErrorMessage.Contains(table))
+                {
+                    foreignKeyTable = table;
+                    break;
+                }
+            }
+
+            return Result.Failure(StudentsErrors.ForeignKeyViolation with { Description = $"The student cannot be deleted because {foreignKeyTable} ." });
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(
+            StudentsErrors.UnexpectedError with { Description = $"An unexpected error occurred: {ex.Message}" });
+
+        }
+    }
+
+    private string GetForeignKeyTableFromError(string sqlerrormessage)
+    {
+        var alltablesindb = GetAllTablesInDb(); // replace with your logic to get all tables
+        foreach (var table in alltablesindb)
+        {
+            if (sqlerrormessage.Contains(table))
+            {
+                return table;
+            }
+        }
+        return "unknown table";
+    }
+
+    private List<string> GetAllTablesInDb()
+    {
+        var tables = _context.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())  // Get the table names
+            .ToList();  // Use ToList instead of ToListAsync
+
+        return tables;
     }
 
 }

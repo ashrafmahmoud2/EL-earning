@@ -28,7 +28,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         var Category = Categorys.FirstOrDefault();
 
         if (Category is null)
-            return Result.Failure<CategoryResponse>(CategoryErrors.CategoryNotFound);
+            return Result.Failure<CategoryResponse>(CategorysErrors.CategoryNotFound);
 
         var CategoryResponse = Category.Adapt<CategoryResponse>();
 
@@ -38,7 +38,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
     public async Task<Result<CategoryResponse>> CreateCategoryAsync(CategoryRequest request, CancellationToken cancellationToken = default)
     {
         if (request is null)
-            Result.Failure(CategoryErrors.CategoryNotFound);
+            Result.Failure(CategorysErrors.CategoryNotFound);
 
 
         var category = request.Adapt<Category>();
@@ -80,7 +80,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         var category = Categorys.FirstOrDefault();
 
         if (category is null)
-            return Result.Failure<CategoryResponse>(CategoryErrors.CategoryNotFound);
+            return Result.Failure<CategoryResponse>(CategorysErrors.CategoryNotFound);
 
 
         category.Name = request.Name;
@@ -99,7 +99,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         var Category = Categorys.FirstOrDefault();
 
         if (Category is null)
-            return Result.Failure(CategoryErrors.CategoryNotFound);
+            return Result.Failure(CategorysErrors.CategoryNotFound);
 
         Category.IsActive= !Category.IsActive;
 

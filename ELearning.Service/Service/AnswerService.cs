@@ -7,6 +7,7 @@ using Mapster;
 using ELearning.Service.IService;
 using ELearning.Data.Contracts.Answer;
 using ELearning.Data.Errors;
+using Azure.Core;
 namespace ELearning.Service.Service;
 
 public class AnswerService : BaseRepository<Answer>, IAnswerService
@@ -29,7 +30,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
                                          , cancellationToken);
 
         if (answer is null)
-            return Result.Failure<AnswerResponse>(AnswerErrors.AnswerNotFound);
+            return Result.Failure<AnswerResponse>(AnswersErrors.NotFound);
 
         var AnswerResponse = answer.Adapt<AnswerResponse>();
 
@@ -40,10 +41,10 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     {
 
         if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
-            return Result.Failure<AnswerResponse>(QuestionErrors.QuestionNotFound);
+            return Result.Failure<AnswerResponse>(QuestionsErrors.NotFound);
 
         if (request is null)
-            Result.Failure(AnswerErrors.AnswerNotFound);
+            Result.Failure(AnswersErrors.NotFound);
         var Answer = request.Adapt<Answer>();
 
 
@@ -68,14 +69,14 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     {
 
         if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
-            return Result.Failure<AnswerResponse>(QuestionErrors.QuestionNotFound);
+            return Result.Failure<AnswerResponse>(QuestionsErrors.NotFound);
 
         var Answer = await _unitOfWork.Repository<Answer>()
                                          .FirstOrDefaultAsync(x => x.AnswerId == AnswerId,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
 
         if (Answer is null)
-            return Result.Failure<AnswerResponse>(AnswerErrors.AnswerNotFound);
+            return Result.Failure<AnswerResponse>(AnswersErrors.NotFound);
 
 
 
@@ -88,7 +89,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
 
             if (!hasCorrectAnswer)
             {
-                return Result.Failure<AnswerResponse>(AnswerErrors.MissingCorrectAnswer);
+                return Result.Failure<AnswerResponse>(AnswersErrors.MissingCorrectAnswer);
             }
         }
 
@@ -110,9 +111,36 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
         var Answer = Answers.FirstOrDefault();
 
         if (Answer is null)
-            return Result.Failure(AnswerErrors.AnswerNotFound);
+            return Result.Failure(AnswersErrors.NotFound);
 
         Answer.IsActive = !Answer.IsActive;
+
+        await _unitOfWork.CompleteAsync(cancellationToken);
+
+        return Result.Success();
+    }
+  
+    public async Task<Result> DeleteAnswerAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var answer = await _unitOfWork.Repository<Answer>()
+                                           .FirstOrDefaultAsync(x => x.AnswerId == id);
+
+
+        if (answer.IsCorrect)
+        {
+            bool hasCorrectAnswer = await _unitOfWork.Repository<Answer>()
+                .AnyAsync(x => x.IsCorrect == true && x.QuestionId == answer.QuestionId && x.AnswerId != answer.AnswerId, cancellationToken);
+
+            if (!hasCorrectAnswer)
+            {
+                return Result.Failure<AnswerResponse>(AnswersErrors.MissingCorrectAnswer);
+            }
+        }
+
+        if (answer is null)
+            return Result.Failure(AnswersErrors.NotFound);
+
+       await _unitOfWork.Repository<Answer>().RemoveAsync(answer);
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

@@ -33,7 +33,7 @@ public class RoleService(RoleManager<ApplicationRole> roleManager, ApplicationDb
     public async Task<Result<RoleDetailResponse>> GetAsync(string id)
     {
         if (await _roleManager.FindByIdAsync(id) is not { } role)
-            return Result.Failure<RoleDetailResponse>(RoleErrors.RoleNotFound);
+            return Result.Failure<RoleDetailResponse>(RoleErrors.NotFound);
 
         var permissions = await _roleManager.GetClaimsAsync(role);
 
@@ -129,7 +129,7 @@ public class RoleService(RoleManager<ApplicationRole> roleManager, ApplicationDb
             return Result.Failure<RoleDetailResponse>(RoleErrors.DuplicatedRole);
 
         if (await _roleManager.FindByIdAsync(id) is not { } role)
-            return Result.Failure<RoleDetailResponse>(RoleErrors.RoleNotFound);
+            return Result.Failure<RoleDetailResponse>(RoleErrors.NotFound);
 
         var allowedPermissions = Permissions.GetAllPermissions();
 
@@ -176,7 +176,7 @@ public class RoleService(RoleManager<ApplicationRole> roleManager, ApplicationDb
     public async Task<Result> ToggleStatusAsync(string id)
     {
         if (await _roleManager.FindByIdAsync(id) is not { } role)
-            return Result.Failure<RoleDetailResponse>(RoleErrors.RoleNotFound);
+            return Result.Failure<RoleDetailResponse>(RoleErrors.NotFound);
 
         role.IsDeleted = !role.IsDeleted;
 

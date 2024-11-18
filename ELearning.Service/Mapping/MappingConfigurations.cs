@@ -21,6 +21,7 @@ using ELearning.Data.Contracts.Question;
 using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Contracts.Quiz;
 using ELearning.Data.Contracts.Section;
+using ELearning.Data.Contracts.Students;
 
 namespace ELearning.Service.Mapping;
 public class MappingConfigurations : IRegister
@@ -87,6 +88,13 @@ public class MappingConfigurations : IRegister
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
            .Map(dest => dest.InstructorName, src => $"{src.User.FirstName} {src.User.LastName}")
            .Map(dest => dest.Email, src => src.User.Email);
+
+
+        //Student
+        config.NewConfig<Student, StudentResponse>()
+           .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
+           .Map(dest => dest.StudentName, src => $"{src.User.FirstName} {src.User.LastName}")
+             .Map(dest => dest.Email, src => src.User.Email);
 
         //Lesson
         config.NewConfig<Lesson, LessonResponse>()

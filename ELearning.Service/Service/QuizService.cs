@@ -31,7 +31,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
 
 
         if (quiz is null)
-            return Result.Failure<QuizResponse>(QuizErrors.QuizNotFound);
+            return Result.Failure<QuizResponse>(QuizsErrors.NotFound);
 
         var quizResponse = quiz.Adapt< QuizResponse>();
 
@@ -53,14 +53,14 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
     public async Task<Result> CreateQuizAsync(QuizRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<QuizResponse>(LessonsErrors.NotFound);
         
         if (await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.LessonId == request.LessonId && x.Title == request.Title))
-            return Result.Failure<QuizResponse>(QuizErrors.DuplicatedQuiz);
+            return Result.Failure<QuizResponse>(QuizsErrors.DuplicatedQuiz);
 
 
         if (request is null)
-            Result.Failure( QuizErrors. QuizNotFound);
+            Result.Failure( QuizsErrors. NotFound);
 
 
         var  Quiz = request.Adapt< Quiz>();
@@ -72,7 +72,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
     public async Task<Result< QuizResponse>> UpdateQuizAsync(Guid quizId,  QuizRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<QuizResponse>(LessonsErrors.NotFound);
 
         var quiz = await _unitOfWork.Repository<Quiz>()
                                         .FirstOrDefaultAsync(x => x.QuizId == quizId,
@@ -81,7 +81,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
                                         cancellationToken);
 
         if (quiz is null)
-            return Result.Failure< QuizResponse>( QuizErrors. QuizNotFound);
+            return Result.Failure< QuizResponse>( QuizsErrors. NotFound);
 
 
         quiz.Description = request.Description;
@@ -100,7 +100,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
                                            .FirstOrDefaultAsync(x => x. QuizId == id);
 
         if (quiz is null)
-            return Result.Failure( QuizErrors. QuizNotFound);
+            return Result.Failure( QuizsErrors. NotFound);
 
         quiz.IsActive= !quiz.IsActive;
 

@@ -39,7 +39,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                  cancellationToken);
 
         if (payment is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
 
         return Result.Success(payment.Adapt<PaymentResponse>());
     }
@@ -80,15 +80,15 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
 
         if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
 
         if (request is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
 
         var enrollment = await _unitOfWork.Repository<Enrollment>().FirstOrDefaultAsync(x => x.EnrollmentId == request.EnrollmentId);
 
         if (enrollment is null)
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
 
         bool isDuplicatePayment = await _unitOfWork.Repository<Payment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId, cancellationToken);
         if (isDuplicatePayment)
@@ -118,7 +118,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     public async Task<Result<PaymentResponse>> UpdatePaymentAsync(Guid paymentId, string paymentStatus, PaymentRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
 
         var payment = await _unitOfWork.Repository<Payment>()
                    .FirstOrDefaultAsync(
@@ -131,7 +131,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                                          .ThenInclude(s => s.User),
                        cancellationToken);
         if (payment is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
 
         if (payment.Status == PaymentStatus.Refunded)
             return Result.Failure<PaymentResponse>(PaymentErrors.RefundedPayment);
@@ -143,7 +143,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                                            .FirstOrDefaultAsync(x => x.EnrollmentId == request.EnrollmentId);
 
         if (enrollment is null)
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
 
         payment.Status = paymentStatus;
 
@@ -166,7 +166,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                        cancellationToken);
 
         if (payment is null)
-            return Result.Failure(PaymentErrors.PaymentNotFound);
+            return Result.Failure(PaymentErrors.NotFound);
 
         payment.IsActive = !payment.IsActive;
 
@@ -183,10 +183,10 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
 
         if (payment is null)
-            return Result.Failure<ReBackMonyResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<ReBackMonyResponse>(PaymentErrors.NotFound);
 
         if (payment.Status == PaymentStatus.Refunded)
-            return Result.Failure<ReBackMonyResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<ReBackMonyResponse>(PaymentErrors.NotFound);
 
 
         payment.Status = PaymentStatus.Refunded;

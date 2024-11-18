@@ -13,7 +13,9 @@ public interface IStudentService
 {
     Task<Result<StudentResponse>> GetStudentByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<StudentResponse>> GetAllStudentsAsync(CancellationToken cancellationToken = default);
-    Task<Result<StudentResponse>> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task<Result> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default);
     Task<Result<StudentResponse>> UpdateStudentAsync(Guid id, StudentRequest request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<Result> DeleteStudentAsync(Guid id, CancellationToken cancellationToken = default);
 }

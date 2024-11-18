@@ -15,7 +15,7 @@ namespace ELearning.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            services.AddMediatR(typeof(GetStudentByIdQuery).Assembly);
+           // services.AddMediatR(typeof(GetStudentByIdQuery).Assembly);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 

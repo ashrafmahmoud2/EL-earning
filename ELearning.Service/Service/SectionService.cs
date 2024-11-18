@@ -33,7 +33,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
                                          , cancellationToken);
 
         if (section is null)
-            return Result.Failure<SectionResponse>(SectionErrors.SectionNotFound);
+            return Result.Failure<SectionResponse>(SectionsErrors.NotFound);
 
         var sectionResponse = section.Adapt<SectionResponse>();
 
@@ -73,15 +73,15 @@ public class SectionService : BaseRepository<Section>, ISectionService
     {
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
-            return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<SectionResponse>(CoursesErrors.NotFound);
 
          if (await _unitOfWork.Repository<Section>().AnyAsync(x => x.CourseId == request.CourseId && x.Title == request.Title))
-            return Result.Failure<SectionResponse>(SectionErrors.DuplicatedSection);
+            return Result.Failure<SectionResponse>(SectionsErrors.DuplicatedSection);
 
         
 
         if (request is null)
-            Result.Failure(SectionErrors.SectionNotFound);
+            Result.Failure(SectionsErrors.NotFound);
 
         
         var section = request.Adapt<Section>();
@@ -97,7 +97,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     {
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
-            return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<SectionResponse>(CoursesErrors.NotFound);
 
         var section = await _unitOfWork.Repository<Section>()
                                       .FirstOrDefaultAsync(x => x.SectionId == id,
@@ -106,7 +106,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
                                       , cancellationToken);
 
         if (section is null)
-            return Result.Failure<SectionResponse>(SectionErrors.SectionNotFound);
+            return Result.Failure<SectionResponse>(SectionsErrors.NotFound);
 
         section.CourseId = request.CourseId;
         section.Title = request.Title;
@@ -125,7 +125,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
                                            .FirstOrDefaultAsync(x => x.SectionId == id);
 
         if (section is null)
-            return Result.Failure(SectionErrors.SectionNotFound);
+            return Result.Failure(SectionsErrors.NotFound);
 
         section.IsActive = !section.IsActive;
 

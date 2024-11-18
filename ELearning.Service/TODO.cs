@@ -13,6 +13,8 @@
 - convert isActive to isDelete with make IRepoistory return wiout Is Deleted;
 -Add checks valadation in All Add services to check duplication
 - Add swagger ui get by give gpt Reqests , services , response 
+-Handel Golale Using
+-In Create Coures make Him Add ++ one in numOfCouress in category tabel
 
 
 
@@ -39,6 +41,27 @@
 - Guid in c# OR CREATE Vervier 7 the vido in code refectory
 - is ICollection in mkae fronie key , what it's,is it best prictec;
 -Is it importent to put the ForeignKey cofig if if oredy in the sql db
+
+
+
+|:::::::::::::|secent|:::::::::::::::::::::::::|
+- Handel froined key whene Delete;
+- result pattern 
+- Make firstOrDefult
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,5 @@
 ﻿using ELearning.Data.Contracts.Answer;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace ELearning.Api.Controllers;
 
@@ -53,6 +54,17 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
 
         return answer.IsSuccess ? NoContent() : answer.ToProblem();
     }
+
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteAnswer([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _AnswerService.DeleteAnswerAsync(id, cancellationToken);
+
+        return result.IsSuccess ? NoContent() : result.ToProblem();
+    }
+
+
 
 
 

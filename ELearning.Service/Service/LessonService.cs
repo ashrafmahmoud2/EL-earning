@@ -33,7 +33,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
        
 
         if (lesson is null)
-            return Result.Failure<LessonResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<LessonResponse>(LessonsErrors.NotFound);
 
         var lessonResponse = lesson.Adapt<LessonResponse>();
 
@@ -58,13 +58,13 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
     {
 
         if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId ==request.SectionId))
-            return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
+            return Result.Failure<LessonResponse>(SectionsErrors.NotFound);
 
         if (await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.Title == request.Title && x.SectionId == request.SectionId))
-            return Result.Failure<LessonResponse>(LessonErrors.DuplicatedLesson);
+            return Result.Failure<LessonResponse>(LessonsErrors.DuplicatedLesson);
 
         if (request is null)
-            Result.Failure(LessonErrors.LessonNotFound);
+            Result.Failure(LessonsErrors.NotFound);
 
         
         var Lesson = request.Adapt<Lesson>();
@@ -79,7 +79,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
     public async Task<Result<LessonResponse>> UpdateLessonAsync(Guid id, LessonRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId == request.SectionId))
-            return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
+            return Result.Failure<LessonResponse>(SectionsErrors.NotFound);
 
 
         var lesson = await _unitOfWork.Repository<Lesson>()
@@ -89,7 +89,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
                                 cancellationToken);
 
         if (lesson is null)
-            return Result.Failure<LessonResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<LessonResponse>(LessonsErrors.NotFound);
 
        lesson.SectionId = request.SectionId;
        lesson.Title = request.Title;
@@ -110,7 +110,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
                                 cancellationToken);
 
         if (lesson is null)
-            return Result.Failure(LessonErrors.LessonNotFound);
+            return Result.Failure(LessonsErrors.NotFound);
 
         lesson.IsActive = !lesson.IsActive;
 

@@ -48,7 +48,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
                                    cancellationToken);
 
         if (instructor is null)
-            return Result.Failure<InstructorResponse>(InstructorErrors.InstructorNotFound);
+            return Result.Failure<InstructorResponse>(InstructorsErrors.InstructorNotFound);
 
 
 
@@ -59,11 +59,11 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
     {
 
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
-            return Result.Failure<InstructorResponse>(UserErrors.UserNotFound);
+            return Result.Failure<InstructorResponse>(UserErrors.NotFound);
 
 
         if (request is null)
-            Result.Failure(InstructorErrors.InstructorNotFound);
+            Result.Failure(InstructorsErrors.InstructorNotFound);
 
         var Instructor = new Instructor()
         {
@@ -89,10 +89,10 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
                                 cancellationToken);
 
         if (instructor.User is null)
-            return Result.Failure<InstructorResponse>(InstructorErrors.InstructorNotFound);
+            return Result.Failure<InstructorResponse>(InstructorsErrors.InstructorNotFound);
 
         if (await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.User.Email == request.Email && x.InstructorId != id, cancellationToken))
-            return Result.Failure<InstructorResponse>(InstructorErrors.DuplicatedInstructor);
+            return Result.Failure<InstructorResponse>(InstructorsErrors.DuplicatedInstructor);
 
         // Update student details
         instructor.User.FirstName = request.FirstName;
@@ -118,7 +118,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
 
         if (instructor is null)
-            return Result.Failure(InstructorErrors.InstructorNotFound);
+            return Result.Failure(InstructorsErrors.InstructorNotFound);
 
         instructor.IsActive = !instructor.IsActive;
 

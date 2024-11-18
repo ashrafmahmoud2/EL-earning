@@ -41,7 +41,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         //   .FirstOrDefaultAsync(x => x.EnrollmentId == id);
 
         if (enrollment is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
         // Adapt to EnrollmentResponse using Mapster
         var enrollmentResponse = enrollment.Adapt<EnrollmentResponse>();
@@ -60,7 +60,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                                   cancellationToken);
 
         if (enrollment is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
         var EnrollmentResponse = enrollment.Adapt<EnrollmentResponse>();
 
@@ -78,7 +78,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                                   cancellationToken);
 
         if (enrollment is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
@@ -117,14 +117,14 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
     public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
-            return Result.Failure<EnrollmentResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<EnrollmentResponse>(StudentsErrors.NotFound);
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
-            return Result.Failure<EnrollmentResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<EnrollmentResponse>(CoursesErrors.NotFound);
 
 
         if (request is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
         bool isDuplicate = await _unitOfWork.Repository<Enrollment>()
         .AnyAsync(x => x.StudentId == request.StudentId && x.CourseId == request.CourseId, cancellationToken);
@@ -156,10 +156,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
     public async Task<Result<EnrollmentResponse>> UpdateEnrollmentAsync(Guid enrollmentId, EnrollmentUpdateRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))
-            return Result.Failure<EnrollmentResponse>(StudentErrors.StudentNotFound);
+            return Result.Failure<EnrollmentResponse>(StudentsErrors.NotFound);
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
-            return Result.Failure<EnrollmentResponse>(CourseErrors.CourseNotFound);
+            return Result.Failure<EnrollmentResponse>(CoursesErrors.NotFound);
 
         var enrollment = await _unitOfWork.Repository<Enrollment>()
                                           .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId,
@@ -170,14 +170,14 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                                        cancellationToken);
 
         if (enrollment is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
 
         var payment = await _unitOfWork.Repository<Payment>()
                                .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);
 
         if (payment is null)
-            return Result.Failure<EnrollmentResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<EnrollmentResponse>(PaymentErrors.NotFound);
 
 
         if (enrollment.Status == EnrollmentStatus.CanceledForNewStudent || enrollment.Status == EnrollmentStatus.CanceledForNewCourse)
@@ -237,7 +237,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                            .FirstOrDefaultAsync(x => x.EnrollmentId == id);
 
         if (enrollment is null)
-            return Result.Failure(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure(EnrollmentErrors.NotFound);
 
         enrollment.IsActive = !enrollment.IsActive;
 
@@ -257,14 +257,14 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                                         cancellationToken);
 
         if (enrollment is null)
-            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.EnrollmentNotFound);
+            return Result.Failure<EnrollmentResponse>(EnrollmentErrors.NotFound);
 
 
         var payment = await _unitOfWork.Repository<Payment>()
                                .FirstOrDefaultAsync(x => x.EnrollmentId == enrollmentId);
 
         if (payment is null)
-            return Result.Failure<EnrollmentResponse>(PaymentErrors.PaymentNotFound);
+            return Result.Failure<EnrollmentResponse>(PaymentErrors.NotFound);
 
 
         if (enrollment.Status == EnrollmentStatus.CanceledForNewStudent || enrollment.Status == EnrollmentStatus.CanceledForNewCourse)

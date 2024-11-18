@@ -14,8 +14,8 @@
     <PackageReference Include="Mailjet.Api" Version="3.0.0" />
     <PackageReference Include="Mapster" Version="7.4.1-pre01" />
     <PackageReference Include="Mapster.DependencyInjection" Version="1.0.2-pre01" />
-    <PackageReference Include="MediatR" Version="11.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0-rc.2.24474.3" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

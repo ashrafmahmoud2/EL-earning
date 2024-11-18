@@ -30,7 +30,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
                                          cancellationToken);
 
         if (document is null)
-            return Result.Failure<DocumentResponse>(DocumentErrors.DocumentNotFound);
+            return Result.Failure<DocumentResponse>(DocumentsErrors.DocumentNotFound);
 
         var DocumentResponse = document.Adapt<DocumentResponse>();
 
@@ -54,10 +54,10 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
     {
 
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<DocumentResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<DocumentResponse>(LessonsErrors.NotFound);
 
         if (request is null)
-            Result.Failure(DocumentErrors.DocumentNotFound);
+            Result.Failure(DocumentsErrors.DocumentNotFound);
 
 
         var Document = request.Adapt<Document>();
@@ -69,7 +69,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
     public async Task<Result<DocumentResponse>> UpdateDocumentAsync(Guid DocumentId, DocumentRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
-            return Result.Failure<DocumentResponse>(LessonErrors.LessonNotFound);
+            return Result.Failure<DocumentResponse>(LessonsErrors.NotFound);
 
 
         var document = await _unitOfWork.Repository<Document>()
@@ -79,7 +79,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
                                          cancellationToken);
 
         if (document is null)
-            return Result.Failure<DocumentResponse>(DocumentErrors.DocumentNotFound);
+            return Result.Failure<DocumentResponse>(DocumentsErrors.DocumentNotFound);
 
 
         document.Description = request.Description;
@@ -100,7 +100,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
         var Document = Documents.FirstOrDefault();
 
         if (Document is null)
-            return Result.Failure(DocumentErrors.DocumentNotFound);
+            return Result.Failure(DocumentsErrors.DocumentNotFound);
 
         Document.IsActive = !Document.IsActive;
 
