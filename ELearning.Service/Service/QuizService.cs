@@ -23,22 +23,40 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
 
     public async Task<Result<QuizResponse>> GetQuizByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var  Quizs = await _unitOfWork.Repository< Quiz>()
-                                         .FindAsync(x => x. QuizId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var  Quiz =  Quizs.FirstOrDefault();
+        var  quiz = await _unitOfWork.Repository< Quiz>()
+                                         .FirstOrDefaultAsync(x => x. QuizId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Lesson),
+                                         cancellationToken);
 
-        if ( Quiz is null)
+
+        if (quiz is null)
             return Result.Failure<QuizResponse>(QuizErrors.QuizNotFound);
 
-        var  QuizResponse =  Quiz.Adapt< QuizResponse>();
+        var quizResponse = quiz.Adapt< QuizResponse>();
 
-        return Result.Success( QuizResponse);
+        return Result.Success(quizResponse);
     }
 
-    public async Task<Result< QuizResponse>> CreateQuizAsync(QuizRequest request, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<QuizResponse>> GetAllQuizsAsync(CancellationToken cancellationToken = default)
+    {
+        var quizs = await _unitOfWork.Repository<Quiz>()
+            .FindAsync(
+                s => true,
+                 q => q.Include(x => x.CreatedBy)
+                       .Include(x => x.Lesson),
+                cancellationToken: cancellationToken);
+
+        return quizs.Adapt<IEnumerable<QuizResponse>>();
+    }
+
+    public async Task<Result> CreateQuizAsync(QuizRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
             return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
+        
+        if (await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.LessonId == request.LessonId && x.Title == request.Title))
+            return Result.Failure<QuizResponse>(QuizErrors.DuplicatedQuiz);
 
 
         if (request is null)
@@ -48,18 +66,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
         var  Quiz = request.Adapt< Quiz>();
         await _unitOfWork.Repository< Quiz>().AddAsync( Quiz, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success( Quiz.Adapt< QuizResponse>());
-    }
-
-    public async Task<IEnumerable<QuizResponse>> GetAllQuizsAsync(CancellationToken cancellationToken = default)
-    {
-        var quizs = await _unitOfWork.Repository<Quiz>()
-            .FindAsync(
-                s => true,
-                cancellationToken: cancellationToken);
-
-        // Corrected typo: Use Adapt instead of Adabt
-        return quizs.Adapt<IEnumerable<QuizResponse>>();
+        return Result.Success( );
     }
 
     public async Task<Result< QuizResponse>> UpdateQuizAsync(Guid quizId,  QuizRequest request, CancellationToken cancellationToken = default)
@@ -67,10 +74,11 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
             return Result.Failure<QuizResponse>(LessonErrors.LessonNotFound);
 
-
         var quiz = await _unitOfWork.Repository<Quiz>()
-                                         .FirstOrDefaultAsync(x => x.QuizId == quizId,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
+                                        .FirstOrDefaultAsync(x => x.QuizId == quizId,
+                                        q => q.Include(x => x.CreatedBy)
+                                              .Include(x => x.Lesson),
+                                        cancellationToken);
 
         if (quiz is null)
             return Result.Failure< QuizResponse>( QuizErrors. QuizNotFound);
@@ -88,14 +96,13 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var  Quizs = await _unitOfWork.Repository< Quiz>()
-                                           .FindAsync(x => x. QuizId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var  Quiz =  Quizs.FirstOrDefault();
+        var  quiz = await _unitOfWork.Repository< Quiz>()
+                                           .FirstOrDefaultAsync(x => x. QuizId == id);
 
-        if ( Quiz is null)
+        if (quiz is null)
             return Result.Failure( QuizErrors. QuizNotFound);
 
-         Quiz.IsActive= ! Quiz.IsActive;
+        quiz.IsActive= !quiz.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

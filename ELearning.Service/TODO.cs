@@ -9,7 +9,9 @@
 - Do Autherzation;
 - Put Docker in prject;
 - optmize the order prop Entity 
+- Add Delet End point In conttrollers;
 - convert isActive to isDelete with make IRepoistory return wiout Is Deleted;
+-Add checks valadation in All Add services to check duplication
 - Add swagger ui get by give gpt Reqests , services , response 
 
 

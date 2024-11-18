@@ -28,54 +28,39 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
     public async Task<IEnumerable<InstructorResponse>> GetAllInstructorsAsync(CancellationToken cancellationToken = default)
     {
-        var Instructors = await _unitOfWork.Repository<Instructor>()
+        var instructors = await _unitOfWork.Repository<Instructor>()
             .FindAsync(
                 s => true,
-                include: q => q.Include(s => s.CreatedBy).Include(s => s.User),
+                q => q.Include(s => s.CreatedBy)
+                .Include(s => s.User),
                 cancellationToken: cancellationToken);
 
 
-        return Instructors.Select(s => new InstructorResponse(
-               InstructorId: s.InstructorId,
-               InstructorName: s.User != null ? s.User.FirstName + " " + s.User.LastName : "Unknown",
-               CreatedBy: s.CreatedBy.FirstName + " " + s.CreatedBy.LastName,
-               CreatedOn: s.CreatedOn,
-               Email: s.User?.Email ?? "No Email",
-               IsActive: s.IsActive
-           )).ToList();
+        return instructors.Adapt<IEnumerable<InstructorResponse>>();
     }
 
     public async Task<Result<InstructorResponse>> GetInstructorByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // Fetch the instructor with the given ID and include related entities
-        var instructors = await _unitOfWork.Repository<Instructor>()
-                                           .FindAsync(x => x.InstructorId == id, q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);
-        var instructor = instructors.FirstOrDefault();
+        var instructor = await _unitOfWork.Repository<Instructor>()
+                                           .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                                 q => q.Include(x => x.CreatedBy)
+                                                 .Include(x => x.User),
+                                   cancellationToken);
 
         if (instructor is null)
             return Result.Failure<InstructorResponse>(InstructorErrors.InstructorNotFound);
 
-        // Map the instructor to an InstructorResponse
-        var instructorResponse = new InstructorResponse(
-            InstructorId: instructor.InstructorId,
-            InstructorName: instructor.User != null ? instructor.User.FirstName + " " + instructor.User.LastName : "Unknown",
-            CreatedBy: instructor.CreatedBy.FirstName + " " + instructor.CreatedBy.LastName,
-            CreatedOn: instructor.CreatedOn,
-            Email: instructor.User?.Email ?? "No Email",
-            IsActive: instructor.IsActive
-        );
 
-        return Result.Success(instructorResponse);
+
+        return Result.Success(instructor.Adapt<InstructorResponse>());
     }
-
 
     public async Task<Result<InstructorResponse>> CreateInstructorAsync(ApplicationUser user, InstructorRequest request, CancellationToken cancellationToken = default)
     {
 
-
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
             return Result.Failure<InstructorResponse>(UserErrors.UserNotFound);
-        
+
 
         if (request is null)
             Result.Failure(InstructorErrors.InstructorNotFound);
@@ -93,11 +78,44 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         return Result.Success(Instructor.Adapt<InstructorResponse>());
     }
 
+    public async Task<Result> UpdateInstructorAsync(Guid id, InstructorRequest request, CancellationToken cancellationToken = default)
+    {
+
+
+        var instructor = await _unitOfWork.Repository<Instructor>()
+                                        .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                              q => q.Include(x => x.CreatedBy)
+                                              .Include(x => x.User),
+                                cancellationToken);
+
+        if (instructor.User is null)
+            return Result.Failure<InstructorResponse>(InstructorErrors.InstructorNotFound);
+
+        if (await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.User.Email == request.Email && x.InstructorId != id, cancellationToken))
+            return Result.Failure<InstructorResponse>(InstructorErrors.DuplicatedInstructor);
+
+        // Update student details
+        instructor.User.FirstName = request.FirstName;
+        instructor.User.LastName = request.LastName;
+        instructor.User.Email = request.Email;
+        instructor.User.UserName = request.Email;
+        instructor.Biography = request.Biography;
+        instructor.Expertise = request.Expertise;
+
+        await _unitOfWork.Repository<Instructor>().UpdateAsync(instructor, cancellationToken);
+        await _unitOfWork.CompleteAsync(cancellationToken);
+
+        return Result.Success();
+    }
+
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var instructors = await _unitOfWork.Repository<Instructor>()
-                                           .FindAsync(x => x.InstructorId == id, q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);
-        var instructor = instructors.FirstOrDefault();
+        var instructor = await _unitOfWork.Repository<Instructor>()
+                                        .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                              q => q.Include(x => x.CreatedBy)
+                                              .Include(x => x.User),
+                                cancellationToken);
+
 
         if (instructor is null)
             return Result.Failure(InstructorErrors.InstructorNotFound);
@@ -110,35 +128,6 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         return Result.Success();
     }
 
-    public async Task<Result> UpdateInstructorAsync(Guid id, InstructorRequest request, CancellationToken cancellationToken = default)
-    {
-        
 
 
-        var instructors = await _unitOfWork.Repository<Instructor>()
-                                         .FindAsync(x => x.InstructorId == id,
-                                         q => q.Include(x => x.CreatedBy).Include(x => x.User), cancellationToken);
-        var instrcotr = instructors.FirstOrDefault();
-
-        if (instrcotr.User is null)
-            return Result.Failure<InstructorResponse>(InstructorErrors.InstructorNotFound);
-
-        if (await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.User.Email == request.Email && x.InstructorId != id, cancellationToken))
-            return Result.Failure<InstructorResponse>(InstructorErrors.DuplicatedInstructor);
-
-        // Update student details
-        instrcotr.User.FirstName = request.FirstName;
-        instrcotr.User.LastName = request.LastName;
-        instrcotr.User.Email = request.Email;
-        instrcotr.User.UserName = request.Email;
-        instrcotr.Biography = request.Biography;
-        instrcotr.Expertise = request.Expertise;
-
-        await _unitOfWork.Repository<Instructor>().UpdateAsync(instrcotr, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
-
-        return Result.Success();
-    }
-
-   
 }

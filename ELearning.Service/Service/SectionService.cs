@@ -26,23 +26,57 @@ public class SectionService : BaseRepository<Section>, ISectionService
 
     public async Task<Result<SectionResponse>> GetSectionByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Sections = await _unitOfWork.Repository<Section>()
-                                         .FindAsync(x => x.SectionId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Section = Sections.FirstOrDefault();
+        var section = await _unitOfWork.Repository<Section>()
+                                         .FirstOrDefaultAsync(x => x.SectionId == id, 
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Course)
+                                         , cancellationToken);
 
-        if (Section is null)
+        if (section is null)
             return Result.Failure<SectionResponse>(SectionErrors.SectionNotFound);
 
-        var SectionResponse = Section.Adapt<SectionResponse>();
+        var sectionResponse = section.Adapt<SectionResponse>();
 
-        return Result.Success(SectionResponse);
+        return Result.Success(sectionResponse);
     }
 
-    public async Task<Result<SectionResponse>> CreateSectionAsync(SectionRequest request, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<SectionResponse>> GetAllSectionsAsync(CancellationToken cancellationToken = default)
+    {
+        var sections = await _unitOfWork.Repository<Section>()
+            .FindAsync(
+                s => true,
+                q => q.Include(x => x.CreatedBy)
+                      .Include(x => x.Course)
+            , cancellationToken);
+
+
+
+
+        return sections.Adapt<IEnumerable<SectionResponse>>();
+    }
+    
+    public async Task<IEnumerable<SectionWithLessonsResponse>> GetAllSectionsWithLessonsAsync(CancellationToken cancellationToken = default)
+    {
+        var sections = await _unitOfWork.Repository<Section>()
+            .FindAsync(
+                _ => true,
+                query => query.Include(section => section.CreatedBy)
+                              .Include(section => section.Course)
+                              .Include(section => section.Lessons),
+                cancellationToken);
+
+        return sections.Adapt<IEnumerable<SectionWithLessonsResponse>>();
+    }
+
+
+    public async Task<Result> CreateSectionAsync(SectionRequest request, CancellationToken cancellationToken = default)
     {
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
             return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
+
+         if (await _unitOfWork.Repository<Section>().AnyAsync(x => x.CourseId == request.CourseId && x.Title == request.Title))
+            return Result.Failure<SectionResponse>(SectionErrors.DuplicatedSection);
 
         
 
@@ -56,22 +90,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
 
         await _unitOfWork.Repository<Section>().AddAsync(section, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(section.Adapt<SectionResponse>());
-    }
-
-
-    public async Task<IEnumerable<SectionResponse>> GetAllSectionsAsync(CancellationToken cancellationToken = default)
-    {
-        var Sections = await _unitOfWork.Repository<Section>()
-            .FindAsync(
-                s => true,
-                include: q => q.Include(s => s.CreatedBy),
-                cancellationToken: cancellationToken);
-
-
-
-
-        return Sections.Adapt<IEnumerable<SectionResponse>>();
+        return Result.Success();
     }
 
     public async Task<Result<SectionResponse>> UpdateSectionAsync(Guid id, SectionRequest request, CancellationToken cancellationToken = default)
@@ -80,10 +99,11 @@ public class SectionService : BaseRepository<Section>, ISectionService
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
             return Result.Failure<SectionResponse>(CourseErrors.CourseNotFound);
 
-        var Sections = await _unitOfWork.Repository<Section>()
-                                         .FindAsync(x => x.SectionId == id,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
-        var section = Sections.FirstOrDefault();
+        var section = await _unitOfWork.Repository<Section>()
+                                      .FirstOrDefaultAsync(x => x.SectionId == id,
+                                      q => q.Include(x => x.CreatedBy)
+                                            .Include(x => x.Course)
+                                      , cancellationToken);
 
         if (section is null)
             return Result.Failure<SectionResponse>(SectionErrors.SectionNotFound);
@@ -99,17 +119,15 @@ public class SectionService : BaseRepository<Section>, ISectionService
         return Result.Success(section.Adapt<SectionResponse>());
     }
 
-
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Sections = await _unitOfWork.Repository<Section>()
-                                           .FindAsync(x => x.SectionId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Section = Sections.FirstOrDefault();
+        var section = await _unitOfWork.Repository<Section>()
+                                           .FirstOrDefaultAsync(x => x.SectionId == id);
 
-        if (Section is null)
+        if (section is null)
             return Result.Failure(SectionErrors.SectionNotFound);
 
-        Section.IsActive = !Section.IsActive;
+        section.IsActive = !section.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

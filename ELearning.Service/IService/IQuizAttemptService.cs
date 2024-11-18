@@ -7,7 +7,7 @@ public interface IQuizAttemptService
 {
     Task<Result<QuizAttemptResponse>> GetQuizAttemptByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default);
-    Task<Result<QuizAttemptResponse>> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default);
+    Task<Result> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default);
     Task<Result<QuizAttemptResponse>> UpdateQuizAttemptAsync(Guid id, QuizAttemptRequest request, CancellationToken cancellationToken = default);
     Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default);
 }

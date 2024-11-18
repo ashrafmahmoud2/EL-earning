@@ -23,19 +23,36 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
     public async Task<Result<QuizAttemptResponse>> GetQuizAttemptByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var QuizAttempts = await _unitOfWork.Repository<QuizAttempt>()
-                                         .FindAsync(x => x.QuizAttemptId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var QuizAttempt = QuizAttempts.FirstOrDefault();
+        var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
+                                         .FirstOrDefaultAsync(x => x.QuizAttemptId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Quiz)
+                                               .Include(x => x.student)
+                                               .ThenInclude(x => x.User),
+                                          cancellationToken);
 
-        if (QuizAttempt is null)
+        if (quizAttempt is null)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptErrors.QuizAttemptNotFound);
 
-        var QuizAttemptResponse = QuizAttempt.Adapt<QuizAttemptResponse>();
-
-        return Result.Success(QuizAttemptResponse);
+        return Result.Success(quizAttempt.Adapt<QuizAttemptResponse>());
     }
 
-    public async Task<Result<QuizAttemptResponse>> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
+    {
+
+        var quizAttempts = await _unitOfWork.Repository<QuizAttempt>()
+                                     .FindAsync(
+                                      s => true,
+                                     q => q.Include(x => x.CreatedBy)
+                                           .Include(x => x.Quiz)
+                                           .Include(x => x.student)
+                                           .ThenInclude(x => x.User),
+                                      cancellationToken);
+
+        return quizAttempts.Adapt<IEnumerable<QuizAttemptResponse>>();
+    }
+
+    public async Task<Result> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
             return Result.Failure<QuizAttemptResponse>(QuizErrors.QuizNotFound);
@@ -117,18 +134,6 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         quizAttempt.ScorePercentage = totalQuestions > 0 ? (correctAnswers * 100) / totalQuestions : 0;
         quizAttempt.HasPassed = quizAttempt.ScorePercentage >= 70;
     }
-
-    public async Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
-    {
-        var QuizAttempts = await _unitOfWork.Repository<QuizAttempt>()
-            .FindAsync(
-                s => true,
-                cancellationToken: cancellationToken);
-
-        // Corrected typo: Use Adapt instead of Adabt
-        return QuizAttempts.Adapt<IEnumerable<QuizAttemptResponse>>();
-    }
-
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {

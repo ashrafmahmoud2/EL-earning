@@ -25,24 +25,43 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
     public async Task<Result<LessonResponse>> GetLessonByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Lessons = await _unitOfWork.Repository<Lesson>()
-                                         .FindAsync(x => x.LessonId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Lesson = Lessons.FirstOrDefault();
+        var lesson = await _unitOfWork.Repository<Lesson>()
+                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                         .Include(x => x.Section),
+                                cancellationToken);
+       
 
-        if (Lesson is null)
+        if (lesson is null)
             return Result.Failure<LessonResponse>(LessonErrors.LessonNotFound);
 
-        var LessonResponse = Lesson.Adapt<LessonResponse>();
+        var lessonResponse = lesson.Adapt<LessonResponse>();
 
-        return Result.Success(LessonResponse);
+        return Result.Success(lessonResponse);
     }
 
-    public async Task<Result<LessonResponse>> CreateLessonAsync(LessonRequest request, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LessonResponse>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
+    {
+        var lessons = await _unitOfWork.Repository<Lesson>()
+                                        .FindAsync(x => true,
+                                        q => q.Include(x => x.CreatedBy)
+                                        .Include(x => x.Section),
+                               cancellationToken);
+
+
+
+
+        return lessons.Adapt<IEnumerable<LessonResponse>>();
+    }
+
+    public async Task<Result> CreateLessonAsync(LessonRequest request, CancellationToken cancellationToken = default)
     {
 
         if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId ==request.SectionId))
             return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
 
+        if (await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.Title == request.Title && x.SectionId == request.SectionId))
+            return Result.Failure<LessonResponse>(LessonErrors.DuplicatedLesson);
 
         if (request is null)
             Result.Failure(LessonErrors.LessonNotFound);
@@ -54,22 +73,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
         await _unitOfWork.Repository<Lesson>().AddAsync(Lesson, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        return Result.Success(Lesson.Adapt<LessonResponse>());
-    }
-
-
-    public async Task<IEnumerable<LessonResponse>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
-    {
-        var Lessons = await _unitOfWork.Repository<Lesson>()
-            .FindAsync(
-                s => true,
-                include: q => q.Include(s => s.CreatedBy),
-                cancellationToken: cancellationToken);
-
-
-
-
-        return Lessons.Adapt<IEnumerable<LessonResponse>>();
+        return Result.Success();
     }
 
     public async Task<Result<LessonResponse>> UpdateLessonAsync(Guid id, LessonRequest request, CancellationToken cancellationToken = default)
@@ -77,36 +81,38 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId == request.SectionId))
             return Result.Failure<LessonResponse>(SectionErrors.SectionNotFound);
 
-        var Lessons = await _unitOfWork.Repository<Lesson>()
-                                         .FindAsync(x => x.LessonId == id,
-                                         q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Lesson = Lessons.FirstOrDefault();
 
-        if (Lesson is null)
+        var lesson = await _unitOfWork.Repository<Lesson>()
+                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                         .Include(x => x.Section),
+                                cancellationToken);
+
+        if (lesson is null)
             return Result.Failure<LessonResponse>(LessonErrors.LessonNotFound);
 
-        Lesson.SectionId = request.SectionId;
-        Lesson.Title = request.Title;
-        Lesson.Description = request.Description;
+       lesson.SectionId = request.SectionId;
+       lesson.Title = request.Title;
+       lesson.Description = request.Description;
 
-
-        await _unitOfWork.Repository<Lesson>().UpdateAsync(Lesson, cancellationToken);
+        await _unitOfWork.Repository<Lesson>().UpdateAsync(lesson, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
-        return Result.Success(Lesson.Adapt<LessonResponse>());
+        return Result.Success(lesson.Adapt<LessonResponse>());
     }
-
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Lessons = await _unitOfWork.Repository<Lesson>()
-                                           .FindAsync(x => x.LessonId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Lesson = Lessons.FirstOrDefault();
+        var lesson = await _unitOfWork.Repository<Lesson>()
+                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         q => q.Include(x => x.CreatedBy)
+                                         .Include(x => x.Section),
+                                cancellationToken);
 
-        if (Lesson is null)
+        if (lesson is null)
             return Result.Failure(LessonErrors.LessonNotFound);
 
-        Lesson.IsActive = !Lesson.IsActive;
+        lesson.IsActive = !lesson.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 
