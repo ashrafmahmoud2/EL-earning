@@ -11,6 +11,7 @@ public record QuestionResponse
     string Text,
     int OrderIndex,
     bool IsActive,
-    Guid QuizId
-    //string QuizTitle
+    Guid QuizId,
+   string QuizTitle,
+   string CreatedBy
 );

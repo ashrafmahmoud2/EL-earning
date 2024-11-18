@@ -1,4 +1,5 @@
-﻿using ELearning.Data.Entities;
+﻿using ELearning.Data.Contracts.Lesson;
+using ELearning.Data.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,23 @@ public record SectionResponse
  string Description,
  int OrderIndex,
  bool IsActive,
- Guid CourseId
-    //string counres Name
-//IEnumerable<Lesson> Lessons //cotain All Lesones id , name
+ Guid CourseId,
+ string CourseTitle,
+string CreatedBy
  );
+
+public record SectionWithLessonsResponse
+(
+ Guid SectionId,
+ string Title,
+ string Description,
+ int OrderIndex,
+ bool IsActive,
+ Guid CourseId,
+ string CourseTitle,
+IEnumerable<LessonResponse> Lessons ,
+string CreatedBy
+ );
+
 
 

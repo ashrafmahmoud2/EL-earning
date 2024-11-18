@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace ELearning.Data.Contracts.Instrctors;
 public record InstructorResponse
 (
- Guid InstructorId,
+    Guid InstructorId,
     string InstructorName,
     string CreatedBy,
     DateTime CreatedOn,
     string Email,
-     bool IsActive
+    bool IsActive
 );
 
 

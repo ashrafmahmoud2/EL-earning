@@ -12,6 +12,7 @@ public record LessonResponse
     string Description,
     int OrderIndex,
     bool IsActive,
-    Guid SectionId
-    //string sectionName
+    Guid SectionId,
+    string sectionName,
+    string CreatedBy
 );

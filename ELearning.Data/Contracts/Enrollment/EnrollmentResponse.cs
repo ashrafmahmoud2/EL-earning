@@ -10,12 +10,11 @@ public record EnrollmentResponse(
     Guid EnrollmentId,
     bool IsActive,
     Guid StudentId,
-   string StudentName,
+    string StudentName,
     Guid CourseId,
-    string CourseName,
+    string CourseTitle,
     DateTime EnrolledAt,
     DateTime? CompletedAt,
-    string Status
-    //string CreatedBy
+    string Status,
+    string CreatedBy
 );
-

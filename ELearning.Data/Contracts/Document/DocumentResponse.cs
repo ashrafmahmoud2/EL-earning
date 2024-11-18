@@ -13,23 +13,9 @@ public record DocumentResponse
     string? Description,
     string DocumentPath,
     bool IsActive,
-    Guid LessonId
-   // string LessoneName
-   //string CreatedBy
+    Guid LessonId,
+    string LessonTitle,
+    string CreatedBy
  );
 
 
-select* From Answers --stop in make DocumentResponse;
-select* From Categorys
-select* From Comments
-select* From Courses
-select* From Documents
-select* From Enrollment
-select* From Instructors
-select* From Lessons
-select* From Payment
-select* From Questions
-select* From Quizs
-select* From QuizAttempts
-select* From Sections
-select* From Students

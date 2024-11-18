@@ -11,10 +11,11 @@ Guid PaymentId,
 DateTime PaymentDate,
 decimal Amount,
 Guid StudentId,
+string StudentName,
 Guid CourseId,
+string CourseTitle,
 bool IsActive,
-string Status
-//guid EnrollmentId
-//strin StudentName
-//strin QouresName
+string Status,
+Guid EnrollmentId,
+string CreatedBy
 );

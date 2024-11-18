@@ -10,9 +10,8 @@ public record QuizResponse
     Guid QuizId ,
     string Title,
     string? Description,
-    bool IsActive,
     Guid LessonId,
-  //  string LessoneName
-    string FirstName
-
+    string LessoneName,
+    string CreatedBy,
+    bool IsActive
 );
