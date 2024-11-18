@@ -1,4 +1,5 @@
 ﻿using ELearning.Data.Contracts.Lesson;
+using ELearning.Data.Entities;
 
 namespace ELearning.Api.Controllers;
 
@@ -12,17 +13,17 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     [HttpGet("{id}")]
     public async Task<IActionResult> GetLessonById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Lesson = await _LessonService.GetLessonByIdAsync(id, cancellationToken);
+        var lesson = await _LessonService.GetLessonByIdAsync(id, cancellationToken);
 
-        return Lesson.IsSuccess ? Ok(Lesson.Value) : Lesson.ToProblem();
+        return lesson.IsSuccess ? Ok(lesson.Value) : lesson.ToProblem();
     }
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllLessons()
     {
-        var Lesson = await _LessonService.GetAllLessonsAsync();
+        var lessons = await _LessonService.GetAllLessonsAsync();
 
-        return Ok(Lesson);
+        return Ok(lessons);
     }
 
     [HttpPost("")]
@@ -36,24 +37,24 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateLesson([FromRoute]Guid id, [FromBody] LessonRequest request, CancellationToken cancellationToken)
     {
-        var Lesson = await _LessonService.UpdateLessonAsync(id, request, cancellationToken);
+        var lesson = await _LessonService.UpdateLessonAsync(id, request, cancellationToken);
 
-        return Lesson.IsSuccess ? NoContent() : Lesson.ToProblem();
+        return lesson.IsSuccess ? Ok(lesson.Value) : lesson.ToProblem();
     }
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusLesson([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Lesson = await _LessonService.ToggleStatusAsync(id, cancellationToken);
+        var lesson = await _LessonService.ToggleStatusAsync(id, cancellationToken);
 
-        return Lesson.IsSuccess ? NoContent() : Lesson.ToProblem();
+        return lesson.IsSuccess ? NoContent() : lesson.ToProblem();
     }
 
     [HttpPut("{lessonId}/comments/count")]
     public async Task<IActionResult> CountCommentsForLesson([FromRoute] Guid lessonId, CancellationToken cancellationToken)
     {
-        var Lesson = await _commentService.CountCommentsForLesson(lessonId, cancellationToken);
+        var lesson = await _commentService.CountCommentsForLesson(lessonId, cancellationToken);
 
-        return Lesson.IsSuccess ? Ok(Lesson.Value) : Lesson.ToProblem();
+        return lesson.IsSuccess ? Ok(lesson.Value) : lesson.ToProblem();
     }
 }

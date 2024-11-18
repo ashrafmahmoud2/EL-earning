@@ -1,4 +1,5 @@
 ﻿using ELearning.Data.Contracts.QuizAttempt;
+using ELearning.Data.Entities;
 
 namespace ELearning.Api.Controllers;
 
@@ -12,27 +13,27 @@ public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : Co
     [HttpGet("{id}")]
     public async Task<IActionResult> GetQuizAttemptById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var QuizAttempt = await _QuizAttemptService.GetQuizAttemptByIdAsync(id, cancellationToken);
+        var quizAttempt = await _QuizAttemptService.GetQuizAttemptByIdAsync(id, cancellationToken);
 
-        return QuizAttempt.IsSuccess ? Ok(QuizAttempt.Value) : QuizAttempt.ToProblem();
+        return quizAttempt.IsSuccess ? Ok(quizAttempt.Value) : quizAttempt.ToProblem();
     }
 
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllQuizAttempts()
     {
-        var QuizAttempt = await _QuizAttemptService.GetAllQuizAttemptsAsync();
+        var quizAttempts = await _QuizAttemptService.GetAllQuizAttemptsAsync();
 
-        return Ok(QuizAttempt);
+        return Ok(quizAttempts);
     }
 
 
     [HttpPost("")]
     public async Task<IActionResult> CreateQuizAttempt([FromBody] QuizAttemptRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _QuizAttemptService.CreateQuizAttemptAsync(request, cancellationToken);
+        var quizAttempt = await _QuizAttemptService.CreateQuizAttemptAsync(request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return quizAttempt.IsSuccess ? Created() : quizAttempt.ToProblem();
     }
 
 
@@ -40,18 +41,18 @@ public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : Co
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateQuizAttempt([FromRoute] Guid id, [FromBody] QuizAttemptRequest request, CancellationToken cancellationToken)
     {
-        var coures =await  _QuizAttemptService.UpdateQuizAttemptAsync(id, request, cancellationToken);
+        var quizAttempt = await  _QuizAttemptService.UpdateQuizAttemptAsync(id, request, cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+        return quizAttempt.IsSuccess ? Ok(quizAttempt.Value) : quizAttempt.ToProblem();
     }
 
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusQuizAttempt([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Instructor = await _QuizAttemptService.ToggleStatusAsync(id, cancellationToken);
+        var quizAttempt = await _QuizAttemptService.ToggleStatusAsync(id, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return quizAttempt.IsSuccess ? NoContent() : quizAttempt.ToProblem();
     }
 
 

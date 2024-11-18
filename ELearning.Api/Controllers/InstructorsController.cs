@@ -1,4 +1,5 @@
 ﻿using ELearning.Data.Contracts.Instrctors;
+using ELearning.Data.Entities;
 using ELearning.Infrastructure.Base;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,9 +42,9 @@ namespace ELearning.Api.Controllers
         [HttpGet( "{id}")]
         public async Task<IActionResult> GetInstructorById([FromRoute] Guid id, CancellationToken cancellationToken)
         {
-            var Instructor = await _instructorService.GetInstructorByIdAsync(id);
+            var instructor = await _instructorService.GetInstructorByIdAsync(id);
 
-            return Instructor.IsSuccess ? Ok(Instructor.Value) : Instructor.ToProblem();
+            return instructor.IsSuccess ? Ok(instructor.Value) : instructor.ToProblem();
         }
 
         /// <summary>
@@ -82,17 +83,17 @@ namespace ELearning.Api.Controllers
         [HttpGet("")]
         public async Task<IActionResult> GetAllInstructors()
         {
-            var Instructor = await _instructorService.GetAllInstructorsAsync();
+            var instructors = await _instructorService.GetAllInstructorsAsync();
 
-            return Ok(Instructor);
+            return Ok(instructors);
         }
 
         [HttpPut("Toggle_status/{id}")]
         public async Task<IActionResult> ToggleStatusInstructor([FromRoute] Guid id)
         {
-            var Instructor = await _instructorService.ToggleStatusAsync(id);
+            var instructor = await _instructorService.ToggleStatusAsync(id);
 
-            return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+            return instructor.IsSuccess ? NoContent() : instructor.ToProblem();
         }
 
         /// <summary>

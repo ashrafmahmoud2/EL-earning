@@ -11,40 +11,47 @@ public class SectionsController(ISectionService SectionService) : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSectionById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Section = await _SectionService.GetSectionByIdAsync(id, cancellationToken);
+        var section = await _SectionService.GetSectionByIdAsync(id, cancellationToken);
 
-        return Section.IsSuccess ? Ok(Section.Value) : Section.ToProblem();
+        return section.IsSuccess ? Ok(section.Value) : section.ToProblem();
     }
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllSections()
     {
-        var Section = await _SectionService.GetAllSectionsAsync();
+        var sections = await _SectionService.GetAllSectionsAsync();
 
-        return Ok(Section);
+        return Ok(sections);
+    }
+
+    [HttpGet("with-lessons")]
+    public async Task<IActionResult> GetAllSectionsWithLessons()
+    {
+        var sections = await _SectionService.GetAllSectionsWithLessonsAsync();
+        return Ok(sections);
     }
 
     [HttpPost("")]
     public async Task<IActionResult> CreateSection([FromBody] SectionRequest request, CancellationToken cancellationToken)
     {
-        var Section = await _SectionService.CreateSectionAsync(request, cancellationToken);
+        var section = await _SectionService.CreateSectionAsync(request, cancellationToken);
 
-        return Section.IsSuccess ? NoContent() : Section.ToProblem();
+        return section.IsSuccess ? Created() : section.ToProblem();
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSection([FromRoute]Guid id, [FromBody] SectionRequest request, CancellationToken cancellationToken)
     {
-        var Section = await _SectionService.UpdateSectionAsync(id, request, cancellationToken);
+        var section = await _SectionService.UpdateSectionAsync(id, request, cancellationToken);
 
-        return Section.IsSuccess ? NoContent() : Section.ToProblem();
+        return section.IsSuccess ? Ok(section.Value) : section.ToProblem();
     }
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusSection([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Section = await _SectionService.ToggleStatusAsync(id, cancellationToken);
+        var section = await _SectionService.ToggleStatusAsync(id, cancellationToken);
 
-        return Section.IsSuccess ? NoContent() : Section.ToProblem();
+        return section.IsSuccess ? NoContent() : section.ToProblem();
     }
 }

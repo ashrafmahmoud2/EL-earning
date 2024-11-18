@@ -12,27 +12,27 @@ public class DocumentsController(IDocumentService DocumentService) : ControllerB
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDocumentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Document = await _DocumentService.GetDocumentByIdAsync(id, cancellationToken);
+        var document = await _DocumentService.GetDocumentByIdAsync(id, cancellationToken);
 
-        return Document.IsSuccess ? Ok(Document.Value) : Document.ToProblem();
+        return document.IsSuccess ? Ok(document.Value) : document.ToProblem();
     }
 
 
     [HttpGet("")]
     public async Task<IActionResult> GetAllDocuments()
     {
-        var Document = await _DocumentService.GetAllDocumentsAsync();
+        var document = await _DocumentService.GetAllDocumentsAsync();
 
-        return Ok(Document);
+        return Ok(document);
     }
 
 
     [HttpPost("")]
     public async Task<IActionResult> CreateDocument([FromBody] DocumentRequest request, CancellationToken cancellationToken)
     {
-        var Instructor = await _DocumentService.CreateDocumentAsync(request, cancellationToken);
+        var document = await _DocumentService.CreateDocumentAsync(request, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return document.IsSuccess ? Created() : document.ToProblem();
     }
 
 
@@ -40,18 +40,18 @@ public class DocumentsController(IDocumentService DocumentService) : ControllerB
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDocument([FromRoute] Guid id, [FromBody] DocumentRequest request, CancellationToken cancellationToken)
     {
-        var coures =await  _DocumentService.UpdateDocumentAsync(id, request, cancellationToken);
+        var document = await  _DocumentService.UpdateDocumentAsync(id, request, cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+        return document.IsSuccess ? Ok(document.Value) : document.ToProblem();
     }
 
 
     [HttpPut("Toggle_status{id}")]
     public async Task<IActionResult> ToggleStatusDocument([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var Instructor = await _DocumentService.ToggleStatusAsync(id, cancellationToken);
+        var document = await _DocumentService.ToggleStatusAsync(id, cancellationToken);
 
-        return Instructor.IsSuccess ? NoContent() : Instructor.ToProblem();
+        return document.IsSuccess ? NoContent() : document.ToProblem();
     }
 
 

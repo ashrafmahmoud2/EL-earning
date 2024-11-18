@@ -35,7 +35,6 @@ public class EnrollmentsController : ControllerBase
         return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem();
     }
 
-
     [HttpGet("")]
     public async Task<IActionResult> GetAllEnrollments()
     {
@@ -47,22 +46,22 @@ public class EnrollmentsController : ControllerBase
     public async Task<IActionResult> CreateEnrollment([FromBody] EnrollmentAddRequest request, CancellationToken cancellationToken)
     {
         var enrollment = await _enrollmentService.CreateEnrollmentAsync(request, EnrollmentStatus.Completed, cancellationToken);
-        return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
+        return enrollment.IsSuccess ? Created() : enrollment.ToProblem();
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateEnrollment([FromRoute] Guid id, [FromBody] EnrollmentUpdateRequest request, CancellationToken cancellationToken)
     {
         var enrollment = await _enrollmentService.UpdateEnrollmentAsync(id, request, cancellationToken);
-        return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
+        return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem();
     }
 
     [HttpPut("refund_payment/{id}")]
     public async Task<IActionResult> RefundPayment([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var coures = await _enrollmentService.RefundEnrollmentAsync(id, cancellationToken);
+        var enrollment = await _enrollmentService.RefundEnrollmentAsync(id, cancellationToken);
 
-        return coures.IsSuccess ? NoContent() : coures.ToProblem();
+        return enrollment.IsSuccess ? NoContent() : enrollment.ToProblem();
     }
 
 
