@@ -29,7 +29,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
         var payment = await _unitOfWork.Repository<Payment>()
              .FirstOrDefaultAsync(
-                 _ => true,
+                 x=>  x.IsActive,
                  query => query.Include(p => p.CreatedBy)
                                .Include(p => p.Enrollment)
                                  .ThenInclude(e => e.course)
@@ -39,7 +39,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                  cancellationToken);
 
         if (payment is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
 
         return Result.Success(payment.Adapt<PaymentResponse>());
     }
@@ -48,7 +48,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
         var payments = await _unitOfWork.Repository<Payment>()
             .FindAsync(
-                _ => true,
+                x=>  x.IsActive,
                 query => query.Include(p => p.CreatedBy)
                               .Include(p => p.Enrollment)
                                 .ThenInclude(e => e.course)
@@ -80,15 +80,15 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
 
         if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
         if (request is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
 
         var enrollment = await _unitOfWork.Repository<Enrollment>().FirstOrDefaultAsync(x => x.EnrollmentId == request.EnrollmentId);
 
         if (enrollment is null)
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
         bool isDuplicatePayment = await _unitOfWork.Repository<Payment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId, cancellationToken);
         if (isDuplicatePayment)
@@ -118,11 +118,11 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     public async Task<Result<PaymentResponse>> UpdatePaymentAsync(Guid paymentId, string paymentStatus, PaymentRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Enrollment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
         var payment = await _unitOfWork.Repository<Payment>()
                    .FirstOrDefaultAsync(
-                       x => x.PaymentId == paymentId,
+                       x => x.PaymentId == paymentId && x.IsActive,
                        query => query.Include(p => p.CreatedBy)
                                      .Include(p => p.Enrollment)
                                        .ThenInclude(e => e.course)
@@ -131,7 +131,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                                          .ThenInclude(s => s.User),
                        cancellationToken);
         if (payment is null)
-            return Result.Failure<PaymentResponse>(PaymentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(PaymentErrors.PaymentNotFound);
 
         if (payment.Status == PaymentStatus.Refunded)
             return Result.Failure<PaymentResponse>(PaymentErrors.RefundedPayment);
@@ -143,7 +143,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                                            .FirstOrDefaultAsync(x => x.EnrollmentId == request.EnrollmentId);
 
         if (enrollment is null)
-            return Result.Failure<PaymentResponse>(EnrollmentErrors.NotFound);
+            return Result.Failure<PaymentResponse>(EnrollmentErrors.EnrollmentNotFound);
 
         payment.Status = paymentStatus;
 
@@ -156,7 +156,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
         var payment = await _unitOfWork.Repository<Payment>()
                    .FirstOrDefaultAsync(
-                       x => x.PaymentId == id,
+                       x => x.PaymentId == id && x.IsActive,
                        query => query.Include(p => p.CreatedBy)
                                      .Include(p => p.Enrollment)
                                        .ThenInclude(e => e.course)
@@ -166,7 +166,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
                        cancellationToken);
 
         if (payment is null)
-            return Result.Failure(PaymentErrors.NotFound);
+            return Result.Failure(PaymentErrors.PaymentNotFound);
 
         payment.IsActive = !payment.IsActive;
 
@@ -179,14 +179,14 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
        
         var payment = await _unitOfWork.Repository<Payment>()
-                                         .FirstOrDefaultAsync(x => x.PaymentId == paymentId,
+                                         .FirstOrDefaultAsync(x => x.PaymentId == paymentId && x.IsActive,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
 
         if (payment is null)
-            return Result.Failure<ReBackMonyResponse>(PaymentErrors.NotFound);
+            return Result.Failure<ReBackMonyResponse>(PaymentErrors.PaymentNotFound);
 
         if (payment.Status == PaymentStatus.Refunded)
-            return Result.Failure<ReBackMonyResponse>(PaymentErrors.NotFound);
+            return Result.Failure<ReBackMonyResponse>(PaymentErrors.PaymentNotFound);
 
 
         payment.Status = PaymentStatus.Refunded;

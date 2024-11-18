@@ -25,7 +25,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
     public async Task<Result<QuestionResponse>> GetQuestionByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var question = await _unitOfWork.Repository<Question>()
-                                         .FirstOrDefaultAsync(x => x.QuestionId == id,
+                                         .FirstOrDefaultAsync(x => x.QuestionId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.Quiz)
                                                 , cancellationToken);
@@ -42,7 +42,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
     {
         var questions = await _unitOfWork.Repository<Question>()
             .FindAsync(
-                s => true,
+                s => s.IsActive,
                 q => q.Include(x => x.CreatedBy)
                .Include(x => x.Quiz)
                , cancellationToken);
@@ -73,7 +73,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
 
 
         var question = await _unitOfWork.Repository<Question>()
-                                        .FirstOrDefaultAsync(x => x.QuestionId == questionId,
+                                        .FirstOrDefaultAsync(x => x.QuestionId == questionId && x.IsActive,
                                         q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Quiz)
                                                , cancellationToken);
@@ -94,7 +94,7 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var question = await _unitOfWork.Repository<Question>()
-                                         .FirstOrDefaultAsync(x => x.QuestionId == id,
+                                         .FirstOrDefaultAsync(x => x.QuestionId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.Quiz)
                                                 , cancellationToken);

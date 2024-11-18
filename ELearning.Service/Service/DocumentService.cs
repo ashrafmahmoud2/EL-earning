@@ -24,7 +24,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
     public async Task<Result<DocumentResponse>> GetDocumentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
           var document = await _unitOfWork.Repository<Document>()
-                                         .FirstOrDefaultAsync(x => x.DocumentId == id,
+                                         .FirstOrDefaultAsync(x => x.DocumentId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Lesson),
                                          cancellationToken);
@@ -41,7 +41,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
     {
         var Documents = await _unitOfWork.Repository<Document>()
             .FindAsync(
-                s => true,
+                x =>x.IsActive,
                 q => q.Include(x => x.CreatedBy)
                        .Include(x => x.Lesson),
                 cancellationToken: cancellationToken);
@@ -73,7 +73,7 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
 
 
         var document = await _unitOfWork.Repository<Document>()
-                                         .FirstOrDefaultAsync(x => x.DocumentId == DocumentId,
+                                         .FirstOrDefaultAsync(x => x.DocumentId == DocumentId && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Lesson),
                                          cancellationToken);
@@ -95,14 +95,13 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Documents = await _unitOfWork.Repository<Document>()
-                                           .FindAsync(x => x.DocumentId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Document = Documents.FirstOrDefault();
+        var document = await _unitOfWork.Repository<Document>()
+                                           .FirstOrDefaultAsync(x => x.DocumentId == id && x.IsActive);
 
-        if (Document is null)
+        if (document is null)
             return Result.Failure(DocumentsErrors.DocumentNotFound);
 
-        Document.IsActive = !Document.IsActive;
+        document.IsActive = !document.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

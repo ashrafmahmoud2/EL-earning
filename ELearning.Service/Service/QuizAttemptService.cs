@@ -24,7 +24,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
     public async Task<Result<QuizAttemptResponse>> GetQuizAttemptByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
-                                         .FirstOrDefaultAsync(x => x.QuizAttemptId == id,
+                                         .FirstOrDefaultAsync(x => x.QuizAttemptId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Quiz)
                                                .Include(x => x.student)
@@ -42,7 +42,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
         var quizAttempts = await _unitOfWork.Repository<QuizAttempt>()
                                      .FindAsync(
-                                      s => true,
+                                      s => s.IsActive,
                                      q => q.Include(x => x.CreatedBy)
                                            .Include(x => x.Quiz)
                                            .Include(x => x.student)
@@ -90,7 +90,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
             return Result.Failure<QuizAttemptResponse>(StudentsErrors.NotFound);
         var quizAttempt = await _unitOfWork.Repository<QuizAttempt>()
-            .FirstOrDefaultAsync(x => x.QuizAttemptId == quizAttemptId, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(x => x.QuizAttemptId == quizAttemptId && x.IsActive, cancellationToken: cancellationToken);
 
         if (quizAttempt is null)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.NotFound);
@@ -138,7 +138,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var QuizAttempts = await _unitOfWork.Repository<QuizAttempt>()
-                                           .FindAsync(x => x.QuizAttemptId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
+                                           .FindAsync(x => x.QuizAttemptId == id && x.IsActive, q => q.Include(x => x.CreatedBy), cancellationToken);
         var QuizAttempt = QuizAttempts.FirstOrDefault();
 
         if (QuizAttempt is null)

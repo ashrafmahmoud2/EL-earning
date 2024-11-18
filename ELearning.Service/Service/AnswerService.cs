@@ -24,7 +24,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     public async Task<Result<AnswerResponse>> GetAnswerByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var answer = await _unitOfWork.Repository<Answer>()
-                                         .FirstOrDefaultAsync(x => x.AnswerId == id,
+                                         .FirstOrDefaultAsync(x => x.AnswerId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Question)
                                          , cancellationToken);
@@ -57,7 +57,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     public async Task<IEnumerable<AnswerResponse>> GetAllAnswersAsync(CancellationToken cancellationToken = default)
     {
         var Answers = await _unitOfWork.Repository<Answer>()
-                                         .FindAsync( x => true,
+                                         .FindAsync(x => x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Question)
                                          , cancellationToken);
@@ -72,7 +72,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
             return Result.Failure<AnswerResponse>(QuestionsErrors.NotFound);
 
         var Answer = await _unitOfWork.Repository<Answer>()
-                                         .FirstOrDefaultAsync(x => x.AnswerId == AnswerId,
+                                         .FirstOrDefaultAsync(x => x.AnswerId == AnswerId && x.IsActive,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
 
         if (Answer is null)
@@ -107,7 +107,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var Answers = await _unitOfWork.Repository<Answer>()
-                                           .FindAsync(x => x.AnswerId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
+                                           .FindAsync(x => x.AnswerId == id && x.IsActive);
         var Answer = Answers.FirstOrDefault();
 
         if (Answer is null)
@@ -123,7 +123,7 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
     public async Task<Result> DeleteAnswerAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var answer = await _unitOfWork.Repository<Answer>()
-                                           .FirstOrDefaultAsync(x => x.AnswerId == id);
+                                           .FirstOrDefaultAsync(x => x.AnswerId == id && x.IsActive);
 
 
         if (answer.IsCorrect)

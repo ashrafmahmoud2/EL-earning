@@ -24,7 +24,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
     public async Task<Result<QuizResponse>> GetQuizByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var  quiz = await _unitOfWork.Repository< Quiz>()
-                                         .FirstOrDefaultAsync(x => x. QuizId == id,
+                                         .FirstOrDefaultAsync(x => x. QuizId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Lesson),
                                          cancellationToken);
@@ -42,7 +42,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
     {
         var quizs = await _unitOfWork.Repository<Quiz>()
             .FindAsync(
-                s => true,
+                s => s.IsActive,
                  q => q.Include(x => x.CreatedBy)
                        .Include(x => x.Lesson),
                 cancellationToken: cancellationToken);
@@ -75,7 +75,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
             return Result.Failure<QuizResponse>(LessonsErrors.NotFound);
 
         var quiz = await _unitOfWork.Repository<Quiz>()
-                                        .FirstOrDefaultAsync(x => x.QuizId == quizId,
+                                        .FirstOrDefaultAsync(x => x.QuizId == quizId && x.IsActive,
                                         q => q.Include(x => x.CreatedBy)
                                               .Include(x => x.Lesson),
                                         cancellationToken);
@@ -97,7 +97,7 @@ public class  QuizService : BaseRepository< Quiz>, IQuizService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var  quiz = await _unitOfWork.Repository< Quiz>()
-                                           .FirstOrDefaultAsync(x => x. QuizId == id);
+                                           .FirstOrDefaultAsync(x => x. QuizId == id && x.IsActive);
 
         if (quiz is null)
             return Result.Failure( QuizsErrors. NotFound);

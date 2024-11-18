@@ -11,7 +11,6 @@ namespace ELearning.Service.Service;
 
 public class CategoryService : BaseRepository<Category>, ICategoryService
 {
-
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
 
@@ -23,16 +22,25 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
 
     public async Task<Result<CategoryResponse>> GetCategoryByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Categorys = await _unitOfWork.Repository<Category>()
-                                         .FindAsync(x => x.CategoryId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Category = Categorys.FirstOrDefault();
+        var category = await _unitOfWork.Repository<Category>()
+                                         .FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive, q => q.Include(x => x.CreatedBy), cancellationToken);
 
-        if (Category is null)
+        if (category is null)
             return Result.Failure<CategoryResponse>(CategorysErrors.CategoryNotFound);
 
-        var CategoryResponse = Category.Adapt<CategoryResponse>();
+        return Result.Success(category.Adapt<CategoryResponse>());
+    }
 
-        return Result.Success(CategoryResponse);
+    public async Task<IEnumerable<CategoryResponse>> GetAllCategorysAsync(CancellationToken cancellationToken = default)
+    {
+        var categorys = await _unitOfWork.Repository<Category>()
+            .FindAsync(
+                x => x.IsActive,
+                include: q => q.Include(s => s.CreatedBy),
+                cancellationToken: cancellationToken);
+
+        return categorys.Adapt<IEnumerable<CategoryResponse>>();
+
     }
 
     public async Task<Result<CategoryResponse>> CreateCategoryAsync(CategoryRequest request, CancellationToken cancellationToken = default)
@@ -48,36 +56,11 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         return Result.Success(result);
     }
 
-    public async Task<IEnumerable<CategoryResponse>> GetAllCategorysAsync(CancellationToken cancellationToken = default)
-    {
-
-
-        var Categorys = await _unitOfWork.Repository<Category>()
-            .FindAsync(
-                s => true,
-                include: q => q.Include(s => s.CreatedBy),
-                cancellationToken: cancellationToken);
-
-
-
-
-        return Categorys.Select(s => new CategoryResponse(
-              s.CategoryId,
-             Name: s.Name,
-             NumberOfCourses: s.NumberOfCourses,
-             IsActive: s.IsActive,
-             CreatedBy: s.CreatedBy.FirstName + " " + s.CreatedBy.LastName,
-             CreatedOn: s.CreatedOn
-         )).ToList();
-
-    }
-
     public async Task<Result<CategoryResponse>> UpdateCategoryAsync(Guid id, CategoryRequest request, CancellationToken cancellationToken = default)
     {
-        var Categorys = await _unitOfWork.Repository<Category>()
-                                         .FindAsync(x => x.CategoryId == id,
+        var category = await _unitOfWork.Repository<Category>()
+                                         .FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
-        var category = Categorys.FirstOrDefault();
 
         if (category is null)
             return Result.Failure<CategoryResponse>(CategorysErrors.CategoryNotFound);
@@ -91,17 +74,15 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         return Result.Success(category.Adapt<CategoryResponse>());
     }
 
-
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Categorys = await _unitOfWork.Repository<Category>()
-                                           .FindAsync(x => x.CategoryId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Category = Categorys.FirstOrDefault();
+        var category = await _unitOfWork.Repository<Category>()
+                                           .FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive, q => q.Include(x => x.CreatedBy), cancellationToken);
 
-        if (Category is null)
+        if (category is null)
             return Result.Failure(CategorysErrors.CategoryNotFound);
 
-        Category.IsActive= !Category.IsActive;
+        category.IsActive= !category.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

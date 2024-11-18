@@ -27,7 +27,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     public async Task<Result<SectionResponse>> GetSectionByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var section = await _unitOfWork.Repository<Section>()
-                                         .FirstOrDefaultAsync(x => x.SectionId == id, 
+                                         .FirstOrDefaultAsync(x => x.SectionId == id && x.IsActive, 
                                          q => q.Include(x => x.CreatedBy)
                                                .Include(x => x.Course)
                                          , cancellationToken);
@@ -44,7 +44,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     {
         var sections = await _unitOfWork.Repository<Section>()
             .FindAsync(
-                s => true,
+                s => s.IsActive,
                 q => q.Include(x => x.CreatedBy)
                       .Include(x => x.Course)
             , cancellationToken);
@@ -59,7 +59,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     {
         var sections = await _unitOfWork.Repository<Section>()
             .FindAsync(
-                _ => true,
+               x => x.IsActive,
                 query => query.Include(section => section.CreatedBy)
                               .Include(section => section.Course)
                               .Include(section => section.Lessons),
@@ -96,7 +96,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     public async Task<Result<SectionResponse>> UpdateSectionAsync(Guid id, SectionRequest request, CancellationToken cancellationToken = default)
     {
 
-        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId))
+        if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId && x.IsActive))
             return Result.Failure<SectionResponse>(CoursesErrors.NotFound);
 
         var section = await _unitOfWork.Repository<Section>()
@@ -122,7 +122,7 @@ public class SectionService : BaseRepository<Section>, ISectionService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var section = await _unitOfWork.Repository<Section>()
-                                           .FirstOrDefaultAsync(x => x.SectionId == id);
+                                           .FirstOrDefaultAsync(x => x.SectionId == id && x.IsActive);
 
         if (section is null)
             return Result.Failure(SectionsErrors.NotFound);

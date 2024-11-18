@@ -26,24 +26,18 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
     public async Task<Result<CourseResponse>> GetCourseByIdAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
-
-
         var course = await _unitOfWork.Repository<Course>()
-                                      .FirstOrDefaultAsync(x => x.CourseId == courseId,
+                                      .FirstOrDefaultAsync(x => x.CourseId == courseId && x.IsActive,
                                       x => x.Include(c => c.CreatedBy)
                                      .Include(c => c.Instructor)
                                      .ThenInclude(i => i.User),
                                       cancellationToken);
-     
-
 
 
         if (course is null)
             return Result.Failure<CourseResponse>(CoursesErrors.NotFound);
 
-        var courseResponse = course.Adapt<CourseResponse>();
-
-        return Result.Success(courseResponse);
+        return Result.Success(course.Adapt<CourseResponse>());
     }
 
     public async Task<Result<IEnumerable<CourseResponse>>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
@@ -51,15 +45,14 @@ public class CourseService : BaseRepository<Course>, ICourseService
         // Fetch courses with related entities eagerly loaded
         var courses = await _unitOfWork.Repository<Course>()
             .FindAsync(
-                predicate: x => true, // Fetch all records
+                x => x.IsActive, // Fetch all records
                 include: query => query.Include(c => c.CreatedBy)
                                       .Include(c => c.Instructor)
                                         .ThenInclude(i => i.User),
                 cancellationToken: cancellationToken
             );
 
-        var courseResponses = courses.Adapt<IEnumerable<CourseResponse>>();
-        return Result.Success(courseResponses);
+        return Result.Success(courses.Adapt<IEnumerable<CourseResponse>>());
     }
 
     public async Task<Result> CreateCourseAsync(CourseRequest request, CancellationToken cancellationToken = default)
@@ -103,7 +96,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
         var course = await _unitOfWork.Repository<Course>()
-                                          .FirstOrDefaultAsync(x => x.CourseId == id,
+                                          .FirstOrDefaultAsync(x => x.CourseId == id && x.IsActive,
                                           x => x.Include(c => c.CreatedBy)
                                          .Include(c => c.Instructor).ThenInclude(i => i.User),
                                           cancellationToken);
@@ -124,14 +117,13 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var Courses = await _unitOfWork.Repository<Course>()
-                                           .FindAsync(x => x.CourseId == id, q => q.Include(x => x.CreatedBy), cancellationToken);
-        var Course = Courses.FirstOrDefault();
+        var course = await _unitOfWork.Repository<Course>()
+                                           .FirstOrDefaultAsync(x => x.CourseId == id && x.IsActive);
 
-        if (Course is null)
+        if (course is null)
             return Result.Failure(CoursesErrors.NotFound);
 
-        Course.IsActive = !Course.IsActive;
+        course.IsActive = !course.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 
@@ -141,7 +133,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     public async Task<Result<CourseResponse>> GetCourseBycategoryId(Guid categoryId, CancellationToken cancellationToken = default)
     {
         var course = await _unitOfWork.Repository<Course>()
-                                  .FirstOrDefaultAsync(x => x.CategoryId == categoryId,
+                                  .FirstOrDefaultAsync(x => x.CategoryId == categoryId && x.IsActive,
                                   x => x.Include(c => c.CreatedBy)
                                  .Include(c => c.Instructor)
                                  .ThenInclude(i => i.User),
@@ -159,7 +151,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     {
 
         var course = await _unitOfWork.Repository<Course>()
-                                   .FirstOrDefaultAsync(x => x.InstructorId == instructorId,
+                                   .FirstOrDefaultAsync(x => x.InstructorId == instructorId && x.IsActive,
                                    x => x.Include(c => c.CreatedBy)
                                   .Include(c => c.Instructor)
                                   .ThenInclude(i => i.User),
@@ -176,6 +168,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     public async Task<Result<List<CourseSectionLessonCountResponse>>> GetCoursesStructure(CancellationToken cancellationToken = default)
     {
         var courseSectionLessonCounts = await _context.Courses
+            .Where(x =>x.IsActive)
             .Select(course => new CourseSectionLessonCountResponse(
                 course.CourseId,
                 course.Title, // Ensure that the CourseName property exists
@@ -194,7 +187,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     public async Task<Result<CourseSectionLessonCountResponse>> GetCourseStructureById(Guid id, CancellationToken cancellationToken = default)
     {
         var courseSectionLessonCount = await _context.Courses
-            .Where(course => course.CourseId == id)
+            .Where(course => course.CourseId == id &&  course.IsActive)
             .Select(course => new CourseSectionLessonCountResponse(
                 course.CourseId,
                 course.Title, // Ensure that the CourseName property exists
@@ -214,8 +207,6 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         return Result.Success(courseSectionLessonCount);
     }
-
-
 
     public async Task<Result<List<CourseEnrollmentCountResponse>>> CountEnrollmentsForCourses(CancellationToken cancellationToken = default)
     {

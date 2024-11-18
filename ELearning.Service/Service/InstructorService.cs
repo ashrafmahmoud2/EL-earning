@@ -30,7 +30,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
     {
         var instructors = await _unitOfWork.Repository<Instructor>()
             .FindAsync(
-                s => true,
+                x => x.IsActive,
                 q => q.Include(s => s.CreatedBy)
                 .Include(s => s.User),
                 cancellationToken: cancellationToken);
@@ -42,7 +42,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
     public async Task<Result<InstructorResponse>> GetInstructorByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var instructor = await _unitOfWork.Repository<Instructor>()
-                                           .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                           .FirstOrDefaultAsync(x => x.InstructorId == id && x.IsActive,
                                                  q => q.Include(x => x.CreatedBy)
                                                  .Include(x => x.User),
                                    cancellationToken);
@@ -59,7 +59,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
     {
 
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
-            return Result.Failure<InstructorResponse>(UserErrors.NotFound);
+            return Result.Failure<InstructorResponse>(UserErrors.UserNotFound);
 
 
         if (request is null)
@@ -83,7 +83,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
 
         var instructor = await _unitOfWork.Repository<Instructor>()
-                                        .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                        .FirstOrDefaultAsync(x => x.InstructorId == id && x.IsActive,
                                               q => q.Include(x => x.CreatedBy)
                                               .Include(x => x.User),
                                 cancellationToken);
@@ -111,7 +111,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var instructor = await _unitOfWork.Repository<Instructor>()
-                                        .FirstOrDefaultAsync(x => x.InstructorId == id,
+                                        .FirstOrDefaultAsync(x => x.InstructorId == id && x.IsActive,
                                               q => q.Include(x => x.CreatedBy)
                                               .Include(x => x.User),
                                 cancellationToken);

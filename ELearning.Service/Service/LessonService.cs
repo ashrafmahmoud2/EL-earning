@@ -26,7 +26,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
     public async Task<Result<LessonResponse>> GetLessonByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var lesson = await _unitOfWork.Repository<Lesson>()
-                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         .FirstOrDefaultAsync(x => x.LessonId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                          .Include(x => x.Section),
                                 cancellationToken);
@@ -43,7 +43,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
     public async Task<IEnumerable<LessonResponse>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
     {
         var lessons = await _unitOfWork.Repository<Lesson>()
-                                        .FindAsync(x => true,
+                                        .FindAsync(x =>  x.IsActive,
                                         q => q.Include(x => x.CreatedBy)
                                         .Include(x => x.Section),
                                cancellationToken);
@@ -83,7 +83,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
 
         var lesson = await _unitOfWork.Repository<Lesson>()
-                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         .FirstOrDefaultAsync(x => x.LessonId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                          .Include(x => x.Section),
                                 cancellationToken);
@@ -104,7 +104,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var lesson = await _unitOfWork.Repository<Lesson>()
-                                         .FirstOrDefaultAsync(x => x.LessonId == id,
+                                         .FirstOrDefaultAsync(x => x.LessonId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                          .Include(x => x.Section),
                                 cancellationToken);

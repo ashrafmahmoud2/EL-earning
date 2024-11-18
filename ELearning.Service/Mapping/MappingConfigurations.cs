@@ -99,7 +99,13 @@ public class MappingConfigurations : IRegister
         //Lesson
         config.NewConfig<Lesson, LessonResponse>()
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
-           .Map(dest => dest.sectionName, src => src.Section.Title);  
+           .Map(dest => dest.sectionName, src => src.Section.Title);
+
+        //Category
+        config.NewConfig<Category, CategoryResponse>()
+           .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}");
+        
+
 
         //Payment
         config.NewConfig<Payment, PaymentResponse>()

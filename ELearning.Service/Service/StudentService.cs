@@ -36,7 +36,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
     public async Task<Result<StudentResponse>> GetStudentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var student = await _unitOfWork.Repository<Student>()
-                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         .FirstOrDefaultAsync(x => x.StudentId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.User)
                                          , cancellationToken);
@@ -54,7 +54,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
         var students = await _unitOfWork.Repository<Student>()
             .FindAsync(
-                s => true,
+                s => s.IsActive,
                  q => q.Include(s => s.CreatedBy)
                  .Include(s => s.User),
                 cancellationToken: cancellationToken);
@@ -65,7 +65,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
     public async Task<Result> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
-            return Result.Failure<StudentResponse>(UserErrors.NotFound);
+            return Result.Failure<StudentResponse>(UserErrors.UserNotFound);
 
         if (user is null)
             Result.Failure(StudentsErrors.NotFound);
@@ -82,7 +82,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
     public async Task<Result<StudentResponse>> UpdateStudentAsync(Guid id, StudentRequest request, CancellationToken cancellationToken = default)
     {
         var student = await _unitOfWork.Repository<Student>()
-                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         .FirstOrDefaultAsync(x => x.StudentId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.User)
                                          , cancellationToken);
@@ -108,7 +108,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var student = await _unitOfWork.Repository<Student>()
-                                         .FirstOrDefaultAsync(x => x.StudentId == id,
+                                         .FirstOrDefaultAsync(x => x.StudentId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.User)
                                          , cancellationToken);
@@ -130,7 +130,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
         {
             var student = await _unitOfWork.Repository<Student>()
                 .FirstOrDefaultAsync(
-                    x => x.StudentId == id,
+                    x => x.StudentId == id && x.IsActive,
                     q => q.Include(x => x.CreatedBy)
                           .Include(x => x.User),
                     cancellationToken);
