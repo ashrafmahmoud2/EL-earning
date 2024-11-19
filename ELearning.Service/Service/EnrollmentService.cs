@@ -150,6 +150,8 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
 
+
+
     public async Task<Result<EnrollmentResponse>> UpdateEnrollmentAsync(Guid enrollmentId, EnrollmentUpdateRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _unitOfWork.Repository<Student>().AnyAsync(x => x.StudentId == request.StudentId))

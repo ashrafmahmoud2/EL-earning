@@ -1,3 +1,7 @@
+using ELearning.Data.Settings;
+using Microsoft.Extensions.Options;
+using Stripe;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -7,8 +11,7 @@ builder.Services.AddDependencies(builder.Configuration);
 var app = builder.Build();
 
 
-
-
+// Configure Hangfire Dashboard
 app.UseHangfireDashboard("/jobs", new DashboardOptions
 {
     Authorization =
@@ -21,6 +24,13 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
     ],
     DashboardTitle = "Survey Basket Dashboard",
 });
+
+
+
+
+// Middleware pipeline
+
+app.UseCors();
 
 app.UseSwagger();
 

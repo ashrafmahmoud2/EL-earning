@@ -1,7 +1,6 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
 
-- cofing with strip payment https://github.com/stripe/stripe-dotnet Ask gpt,project tel
 - DO All steps in project steps
 - Do Autherzation in cotrooler like Admin , student , with fix the userID IN Appliction db context
 - Put Docker in prject;
@@ -51,9 +50,11 @@
 | `test`     | `quiz`    | Adding or updating tests                             | `test(quiz): add unit tests for quiz attempt validation logic`      |
 | `chore`    | `backend` | Maintenance or setup tasks                           | `chore(backend): update dependencies for improved security`         |
 
+|:::::::::::::|MY PROJECT|:::::::::::::|
 
-
-
+- STRIP PAYMENT 
+-option pattern
+- the names in poroject steps
 
 
 

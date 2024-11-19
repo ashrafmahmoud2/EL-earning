@@ -10,6 +10,7 @@ using ELearning.Data.Errors;
 using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Answer;
 using Azure.Core;
+using Stripe;
 namespace ELearning.Service.Service;
 
 public class PaymentService : BaseRepository<Payment>, IPaymentService
@@ -18,11 +19,13 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly StripeClient _stripeClient;
 
-    public PaymentService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+    public PaymentService(ApplicationDbContext context, IUnitOfWork unitOfWork, StripeClient stripeClient) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _stripeClient = stripeClient;   
     }
 
     public async Task<Result<PaymentResponse>> GetPaymentByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -98,21 +101,34 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
         if (await _unitOfWork.Repository<Payment>().AnyAsync(x => x.EnrollmentId == request.EnrollmentId))
             return Result.Failure<PaymentResponse>(EnrollmentErrors.DuplicatedEnrollment);
 
-        var course = await _unitOfWork.Repository<Course>().FirstOrDefaultAsync(x => x.CourseId == request.CourseId);
+        var course = await _unitOfWork.Repository<Course>().FirstOrDefaultAsync(x => x.CourseId == request.CourseId && x.IsActive);
+
+        var paymentIntentService = new PaymentIntentService(_stripeClient);
+        var paymentIntentOptions = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(course.Price * 100),  // Amount is in cents
+            Currency = "usd",  // Or the currency you're using
+            Metadata = new Dictionary<string, string>
+            {
+                { "EnrollmentId", request.EnrollmentId.ToString() },
+                { "CourseId", request.CourseId.ToString() }
+            }
+        };
+
+        var paymentIntent = await paymentIntentService.CreateAsync(paymentIntentOptions);
 
         var payment = new Payment
         {
             Amount = course.Price,
             Status = paymentStatus,
-            EnrollmentId = request.EnrollmentId
+            EnrollmentId = request.EnrollmentId,
+            StripePaymentIntentId = paymentIntent.Id,
         };
 
         await _unitOfWork.Repository<Payment>().AddAsync(payment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-
-        // var result = new PaymentResponse(payment.PaymentId, payment.PaymentDate, payment.Amount, payment.Enrollment.StudentId, payment.Enrollment.CourseId, payment.IsActive, payment.Status);
         
-        return Result.Success();
+        return Result.Success(paymentIntent.ClientSecret);
     }
 
     public async Task<Result<PaymentResponse>> UpdatePaymentAsync(Guid paymentId, string paymentStatus, PaymentRequest request, CancellationToken cancellationToken = default)

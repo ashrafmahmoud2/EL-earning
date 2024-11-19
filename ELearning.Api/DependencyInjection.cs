@@ -1,6 +1,9 @@
 ﻿using ELearning.Core.Base.ApiResponse;
 using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
 using ELearning.Data;
+using ELearning.Data.Settings;
+using Microsoft.Extensions.Options;
+using Stripe;
 using System.Reflection;
 
 namespace ELearning.Api
@@ -10,9 +13,6 @@ namespace ELearning.Api
         public static IServiceCollection AddDependencies(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers();
-
-            // Configuration of MediatR (registering from the current assembly)
-          //  services.AddMediatR(Assembly.GetExecutingAssembly());
 
 
 
@@ -24,12 +24,17 @@ namespace ELearning.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            // Register AutoMapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
             //Dependencies of projects
             services.AddCustomServiceDependencies(configuration);
             services.AddSwaggerConfig();
+            services.AddStripeConfig(configuration);
+            services.AddCorsConfig(configuration);
+
+
 
             return services;
         }
@@ -86,5 +91,25 @@ namespace ELearning.Api
 
             return services;
         }
+
+        public static IServiceCollection AddStripeConfig(this IServiceCollection services, IConfiguration configuration)
+        {
+            // Configure Stripe settings
+            services.Configure<StripeSettings>(configuration.GetSection("Stripe"));
+
+            // Register StripeClient
+            services.AddSingleton(provider =>
+            {
+                var stripeSettings = provider.GetRequiredService<IOptions<StripeSettings>>().Value;
+                return new StripeClient(stripeSettings.SecretKey);
+            });
+
+            return services;
+        }
+
+
+
+
+
     }
 }

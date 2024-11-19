@@ -6,6 +6,7 @@
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
         public decimal Amount { get; set; }
         public Guid EnrollmentId { get; set; }
+        public string? StripePaymentIntentId { get; set; }
 
         public string Status { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
