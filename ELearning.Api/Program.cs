@@ -1,11 +1,16 @@
 using ELearning.Data.Settings;
 using Microsoft.Extensions.Options;
+using Serilog;
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddDependencies(builder.Configuration);
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration)
+);
 
 
 var app = builder.Build();

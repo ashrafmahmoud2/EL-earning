@@ -15,8 +15,7 @@ namespace ELearning.Api
             services.AddControllers();
 
 
-
-
+          
             // Configure database connection
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
