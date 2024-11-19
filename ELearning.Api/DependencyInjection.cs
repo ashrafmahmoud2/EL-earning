@@ -107,8 +107,17 @@ namespace ELearning.Api
             return services;
         }
 
+        public static IServiceCollection AddCorsConfig(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddCors(options =>
+              options.AddDefaultPolicy(builder =>
+               builder
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)));
 
-
+            return services;
+        }
 
 
     }
