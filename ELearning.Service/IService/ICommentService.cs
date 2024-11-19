@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Abstractions.ResultPattern;
 using ELearning.Data.Contracts.Comment;
+using ELearning.Data.Entities;
 
 namespace ELearning.Service.IService;
 

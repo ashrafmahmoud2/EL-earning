@@ -10,7 +10,9 @@ public static class CoreDependencies
     {
 
         // Configuration of MediatR
-      //  services.AddMediatR(Assembly.GetExecutingAssembly());
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+
+        services.AddTransient<ApiResponseHandler>();
 
         // Configuration of AutoMapper
         services.AddAutoMapper(Assembly.GetExecutingAssembly());

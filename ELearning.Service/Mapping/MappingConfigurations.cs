@@ -70,6 +70,9 @@ public class MappingConfigurations : IRegister
         config.NewConfig<Comment, CommentResponse>()
             .Map(dest => dest.CommentedBy, serc => serc.ApplicationUser.FirstName + " " + serc.ApplicationUser.LastName);
 
+       
+
+
         //Course
         config.NewConfig<Course, CourseResponse>()
             .Map(dest => dest.InstructorName, serc => serc.Instructor.User.FirstName + " " + serc.Instructor.User.LastName)

@@ -1,8 +1,6 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
 
-- in i IBASE Repoistory make him don't get the IsActive objects
-- just use CQRS In models user alot in db(Comments,Doucments).
 - cofing with strip payment https://github.com/stripe/stripe-dotnet Ask gpt,project tel
 - DO All steps in project steps
 - Do Autherzation in cotrooler like Admin , student , with fix the userID IN Appliction db context

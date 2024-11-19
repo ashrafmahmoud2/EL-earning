@@ -1,4 +1,7 @@
-﻿using ELearning.Data;
+﻿using ELearning.Core.Base.ApiResponse;
+using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
+using ELearning.Data;
+using System.Reflection;
 
 namespace ELearning.Api
 {
@@ -8,6 +11,12 @@ namespace ELearning.Api
         {
             services.AddControllers();
 
+            // Configuration of MediatR (registering from the current assembly)
+          //  services.AddMediatR(Assembly.GetExecutingAssembly());
+
+
+
+
             // Configure database connection
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -15,7 +24,6 @@ namespace ELearning.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-           // services.AddMediatR(typeof(GetStudentByIdQuery).Assembly);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
