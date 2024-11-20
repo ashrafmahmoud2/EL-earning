@@ -1,10 +1,13 @@
 ﻿using ELearning.Core.Base.ApiResponse;
 using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
 using ELearning.Data;
+using ELearning.Data.Consts;
 using ELearning.Data.Settings;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Stripe;
 using System.Reflection;
+using System.Threading.RateLimiting;
 
 namespace ELearning.Api
 {
@@ -23,8 +26,11 @@ namespace ELearning.Api
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Register AutoMapper
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            //Health Checks Configure
+            services.AddHealthChecks()
+                       .AddSqlServer(name: "database", connectionString: connectionString!)
+                       .AddHangfire(options => { options.MinimumAvailableServers = 1; });
 
 
             //Dependencies of projects
@@ -32,6 +38,7 @@ namespace ELearning.Api
             services.AddSwaggerConfig();
             services.AddStripeConfig(configuration);
             services.AddCorsConfig(configuration);
+            services.AddRateLimitingConfig();
 
 
 
@@ -108,12 +115,67 @@ namespace ELearning.Api
 
         public static IServiceCollection AddCorsConfig(this IServiceCollection services, IConfiguration configuration)
         {
+            var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>();
+
             services.AddCors(options =>
-              options.AddDefaultPolicy(builder =>
-               builder
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>()!)));
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.AllowAnyMethod()
+                           .AllowAnyHeader();
+
+                    if (allowedOrigins != null && allowedOrigins.Length > 0)
+                    {
+                        builder.WithOrigins(allowedOrigins);
+                    }
+                    else
+                    {
+                        builder.AllowAnyOrigin(); // Or configure as needed for no origins specified
+                    }
+                });
+            });
+
+            return services;
+        }
+
+        private static IServiceCollection AddRateLimitingConfig(this IServiceCollection services)
+        {
+            services.AddRateLimiter(rateLimiterOptions =>
+            {
+                rateLimiterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                // Limits requests from the same IP address to 2 requests every 20 seconds;
+                rateLimiterOptions.AddPolicy(RateLimiters.IpLimiter, httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 2,
+                            Window = TimeSpan.FromSeconds(20)
+                        }
+                )
+                );
+
+                // Limits requests from the same user ID to 2 requests every 20 seconds
+                rateLimiterOptions.AddPolicy(RateLimiters.UserLimiter, httpContext =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: httpContext.User.GetUserId(),
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 2,
+                            Window = TimeSpan.FromSeconds(20)
+                        }
+                )
+                );
+
+                // Limits the number of concurrent requests to 1000 and allows up to 100 requests in the queue
+                rateLimiterOptions.AddConcurrencyLimiter(RateLimiters.Concurrency, options =>
+                {
+                    options.PermitLimit = 1000;
+                    options.QueueLimit = 100;
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                });
+            });
 
             return services;
         }

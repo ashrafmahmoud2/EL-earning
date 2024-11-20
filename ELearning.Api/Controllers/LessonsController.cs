@@ -1,10 +1,13 @@
-﻿using ELearning.Data.Contracts.Lesson;
+﻿using ELearning.Data.Consts;
+using ELearning.Data.Contracts.Lesson;
 using ELearning.Data.Entities;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.UserLimiter)]
 public class LessonsController(ILessonService LessonService,ICommentService commentService) : ControllerBase
 {
     private readonly ILessonService _LessonService = LessonService;

@@ -1,10 +1,13 @@
-﻿using ELearning.Data.Contracts.QuizAttempt;
+﻿using ELearning.Data.Consts;
+using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Entities;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.Concurrency)]
 public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : ControllerBase
 {
     private readonly IQuizAttemptService _QuizAttemptService = QuizAttemptService;

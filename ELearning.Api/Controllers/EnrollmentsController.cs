@@ -1,10 +1,12 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Enrollment;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.UserLimiter)]
 public class EnrollmentsController : ControllerBase
 {
     private readonly IEnrollmentService _enrollmentService;

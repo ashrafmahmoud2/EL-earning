@@ -21,6 +21,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace ELearning.Service.Service;
 
+
+
 public class StudentService : BaseRepository<Student>, IStudentService
 {
 

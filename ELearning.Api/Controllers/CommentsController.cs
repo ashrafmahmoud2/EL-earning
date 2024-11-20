@@ -3,14 +3,17 @@ using ELearning.Core.MediatrHandlers.Comments.Commands.CreateComment;
 using ELearning.Core.MediatrHandlers.Student.Commands.UpdateStudent;
 using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
 using ELearning.Core.MediatrHandlers.Student.Queries.GetCommenByIdQuery;
+using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Comment;
 using ELearning.Data.Entities;
+using Microsoft.AspNetCore.RateLimiting;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.UserLimiter)]
 public class CommentsController(ICommentService CommentService) : AppControllerBase
 {
     private readonly ICommentService _CommentService = CommentService;

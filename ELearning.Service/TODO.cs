@@ -1,15 +1,15 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
 
-- DO All steps in project steps
+- DO All steps in project steps/cacheing-pagination filtering-ratelimiting
 - Do Autherzation in cotrooler like Admin , student , with fix the userID IN Appliction db context
 - Put Docker in prject;
 - Add checks valadation in All Udate&Add duplicted services to check duplication
 - Add swagger ui get by give gpt Reqests , services , response 
 - Handel Golale Using
 - In Create Coures make Him Add ++ one in numOfCouress in category tabel
-- user permission in project
-
+- user permission in project , with fix  var users = await _userManager.GetUsersInRoleAsync(DefaultRoles.Member.Name); in  INotificationService
+-make all lessone , comment cqrs and make it user result pattern;
 
 
 
@@ -19,6 +19,7 @@
  - fix the send email send :: he cant find Data project just find Api prjct
  - FIX THE AddAsync2 IN RolesController
  - fix UpdateCourseAsync in couress services;
+- make user get all method , not findAsync , aadd repostory asnotracing;
 
  
 
@@ -55,6 +56,8 @@
 - STRIP PAYMENT 
 -option pattern
 - the names in poroject steps
+- hangfire
+-
 
 
 

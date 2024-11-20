@@ -10,18 +10,22 @@ using ELearning.Data.Contracts.Course;
 using ELearning.Data.Errors;
 using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Answer;
+using Hangfire;
+using Stripe;
+using Microsoft.Extensions.DependencyInjection;
 namespace ELearning.Service.Service;
 
 public class CourseService : BaseRepository<Course>, ICourseService
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IServiceProvider _serviceProvider;
 
-    public CourseService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+    public CourseService(ApplicationDbContext context, IUnitOfWork unitOfWork,IServiceProvider serviceProvider) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
-
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<Result<CourseResponse>> GetCourseByIdAsync(Guid courseId, CancellationToken cancellationToken = default)
@@ -77,9 +81,10 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
 
-        var Course = request.Adapt<Course>();
-        await _unitOfWork.Repository<Course>().AddAsync(Course, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
+        var course = request.Adapt<Course>();
+
+        BackgroundJob.Enqueue(() => AddCourseInBackground(course));
+
         return Result.Success();
     }
 
@@ -108,9 +113,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
     
         course = request.Adapt(course);
 
-        await _unitOfWork.Repository<Course>().UpdateAsync(course, cancellationToken);
-
-        await _unitOfWork.CompleteAsync(cancellationToken);
+        BackgroundJob.Enqueue(() => UpdateCourseInBackground(course));
 
         return Result.Success(course.Adapt<CourseResponse>());
     }
@@ -242,8 +245,26 @@ public class CourseService : BaseRepository<Course>, ICourseService
         return Result.Success(refundedEnrollmentCounts);
     }
 
+    private async Task UpdateCourseInBackground(Course course)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
+        // Update the course in the repository
+        await unitOfWork.Repository<Course>().UpdateAsync(course);
 
+        // Commit the changes asynchronously
+        await unitOfWork.CompleteAsync();
+    }
+
+    private async Task AddCourseInBackground(Course course)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+        await unitOfWork.Repository<Course>().AddAsync(course);
+        await unitOfWork.CompleteAsync();
+    }
 
 
 }

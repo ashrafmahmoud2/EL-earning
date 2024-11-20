@@ -1,16 +1,20 @@
-﻿using ELearning.Data.Contracts.Answer;
+﻿using ELearning.Data.Consts;
+using ELearning.Data.Contracts.Answer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.UserLimiter)]
 public class AnswersController(IAnswerService AnswerService) : ControllerBase
 {
     private readonly IAnswerService _AnswerService = AnswerService;
 
 
     [HttpGet("{id}")]
+    [DisableRateLimiting()]
     public async Task<IActionResult> GetAnswerById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var answer = await _AnswerService.GetAnswerByIdAsync(id, cancellationToken);

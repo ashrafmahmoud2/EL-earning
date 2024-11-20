@@ -1,9 +1,12 @@
-﻿using ELearning.Data.Contracts.Course;
+﻿using ELearning.Data.Consts;
+using ELearning.Data.Contracts.Course;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[EnableRateLimiting(RateLimiters.Concurrency)]
 public class CoursesController(ICourseService CourseService) : ControllerBase
 {
     private readonly ICourseService _CourseService = CourseService;

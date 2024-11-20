@@ -1,4 +1,6 @@
 using ELearning.Data.Settings;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Stripe;
@@ -31,9 +33,19 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 });
 
 
+// Background Job using Hangfire
+var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+using var scope = scopeFactory.CreateScope();
+var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+RecurringJob.AddOrUpdate("SendNewCoursesNotification", () => notificationService.SendNewCoursesNotification(null), Cron.Daily);
+
+
+
+
 
 
 // Middleware pipeline
+
 
 app.UseCors();
 
@@ -46,5 +58,13 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseRateLimiter();
+
+
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.Run();
