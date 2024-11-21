@@ -13,19 +13,30 @@ using ELearning.Data.Contracts.Answer;
 using Hangfire;
 using Stripe;
 using Microsoft.Extensions.DependencyInjection;
+using ELearning.Data.Abstractions;
+using ELearning.Data.Contracts.Filters;
+using ELearning.Data.Contracts.Question;
+using System.Linq.Dynamic.Core;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+
 namespace ELearning.Service.Service;
+
 
 public class CourseService : BaseRepository<Course>, ICourseService
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IServiceProvider _serviceProvider;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public CourseService(ApplicationDbContext context, IUnitOfWork unitOfWork,IServiceProvider serviceProvider) : base(context)
+    public CourseService(ApplicationDbContext context, IUnitOfWork unitOfWork,IServiceProvider serviceProvider, ICacheService cacheService, IDistributedCache distributedCache) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
         _serviceProvider = serviceProvider;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<CourseResponse>> GetCourseByIdAsync(Guid courseId, CancellationToken cancellationToken = default)
@@ -44,19 +55,54 @@ public class CourseService : BaseRepository<Course>, ICourseService
         return Result.Success(course.Adapt<CourseResponse>());
     }
 
-    public async Task<Result<IEnumerable<CourseResponse>>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
+
+    public async Task<Result<PaginatedList<CourseResponse>>> GetAllCoursesAsync(RequestFilters filters, CancellationToken cancellationToken = default)
     {
-        // Fetch courses with related entities eagerly loaded
-        var courses = await _unitOfWork.Repository<Course>()
-            .FindAsync(
+
+        var cacheKey = $"Courses_{filters.PageNumber}_{filters.PageSize}_{filters.SortColumn}_{filters.SortDirection}_{filters.SearchValue}";
+
+
+      
+
+        // Check if data is in the cache
+        var cachedCourses = await _cacheService.GetCacheAsync<PaginatedList<CourseResponse>>(cacheKey);
+        if (cachedCourses != null)
+        {
+            return Result.Success(cachedCourses);
+        }
+
+        var query =  _unitOfWork.Repository<Course>()
+            .Find(
                 x => x.IsActive, // Fetch all records
                 include: query => query.Include(c => c.CreatedBy)
                                       .Include(c => c.Instructor)
-                                        .ThenInclude(i => i.User),
-                cancellationToken: cancellationToken
+                                        .ThenInclude(i => i.User)    
             );
 
-        return Result.Success(courses.Adapt<IEnumerable<CourseResponse>>());
+        if (!string.IsNullOrEmpty(filters.SearchValue))
+        {
+            query = query.Where(x => x.Title.Contains(filters.SearchValue));
+        }
+
+        // Dynamic sorting using reflection or a package like System.Linq.Dynamic.Core
+        if (!string.IsNullOrEmpty(filters.SortColumn))
+        {
+            //stop in check this
+            query = query.OrderBy($"{filters.SortColumn} {filters.SortDirection}");
+        }
+
+        // Project to CourseResponse and apply pagination
+        var source = query
+            .ProjectToType<CourseResponse>()
+            .AsNoTracking();
+
+        var courses = await PaginatedList<CourseResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+
+        // Cache the result
+        await _cacheService.SetCacheAsync(cacheKey, courses, _cacheDuration);
+
+        return Result.Success(courses);
+
     }
 
     public async Task<Result> CreateCourseAsync(CourseRequest request, CancellationToken cancellationToken = default)
@@ -85,6 +131,8 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
         BackgroundJob.Enqueue(() => AddCourseInBackground(course));
 
+        // Remove the cached 
+        var cacheKey = $"Courses_{request.InstructorId}"; // Adjust cache key as necessary
         return Result.Success();
     }
 
@@ -114,7 +162,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
         course = request.Adapt(course);
 
         BackgroundJob.Enqueue(() => UpdateCourseInBackground(course));
-
+        var cacheKey = $"Courses_{request.InstructorId}"; // Adjust cache key as necessary
         return Result.Success(course.Adapt<CourseResponse>());
     }
 
@@ -129,7 +177,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
         course.IsActive = !course.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
-
+        var cacheKey = $"Courses_{course.InstructorId}"; // Adjust cache key as necessary
         return Result.Success();
     }
 

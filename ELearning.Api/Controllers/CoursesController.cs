@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Course;
+using ELearning.Data.Contracts.Filters;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
@@ -20,9 +21,9 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
     }
 
     [HttpGet("")]
-    public async Task<IActionResult> GetAllCourses()
+    public async Task<IActionResult> GetAllCourses([FromQuery] RequestFilters filters , CancellationToken cancellationToken)
     {
-        var course = await _CourseService.GetAllCoursesAsync();
+        var course = await _CourseService.GetAllCoursesAsync(filters , cancellationToken);
 
         return course.IsSuccess ? Ok(course.Value) : course.ToProblem();
     }
