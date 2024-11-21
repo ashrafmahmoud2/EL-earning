@@ -11,6 +11,7 @@ using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Answer;
 using Azure.Core;
 using Stripe;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace ELearning.Service.Service;
 
 public class PaymentService : BaseRepository<Payment>, IPaymentService
@@ -25,14 +26,14 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
         _context = context;
         _unitOfWork = unitOfWork;
-        _stripeClient = stripeClient;   
+        _stripeClient = stripeClient;
     }
 
     public async Task<Result<PaymentResponse>> GetPaymentByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var payment = await _unitOfWork.Repository<Payment>()
              .FirstOrDefaultAsync(
-                 x=>  x.IsActive,
+                 x => x.IsActive,
                  query => query.Include(p => p.CreatedBy)
                                .Include(p => p.Enrollment)
                                  .ThenInclude(e => e.course)
@@ -51,7 +52,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
     {
         var payments = await _unitOfWork.Repository<Payment>()
             .FindAsync(
-                x=>  x.IsActive,
+                x => x.IsActive,
                 query => query.Include(p => p.CreatedBy)
                               .Include(p => p.Enrollment)
                                 .ThenInclude(e => e.course)
@@ -63,15 +64,17 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
         return payments.Adapt<IEnumerable<PaymentResponse>>();
     }
 
-    public async Task<Result<IEnumerable<PaymentResponse>>> GetAllPaymentsForStudentAsync(string userId)
+    public async Task<Result<IEnumerable<PaymentResponse>>> GetAllPaymentsForStudentAsync(string userId, CancellationToken cancellationToken)
     {
-        var payments = await _context.Students
-            .Where(s => s.User.Id == userId && s.IsActive) // Filter by userId and active student
-            .SelectMany(s => s.Enrollments) // Flatten the enrollments
-            .Where(e => e.IsActive) // Ensure active enrollments
-            .SelectMany(e => e.Payments) // Flatten the payments for each enrollment
-            .Where(p => p.IsActive) // Ensure active payments
-            .ToListAsync();
+        var payments = await _unitOfWork.Repository<Payment>().FindAsync(x => x.Enrollment.student.UserId == userId &&
+        x.IsActive && x.Enrollment.student.IsActive,
+        query => query.Include(p => p.CreatedBy)
+                              .Include(p => p.Enrollment)
+                                .ThenInclude(e => e.course)
+                              .Include(p => p.Enrollment)
+                                .ThenInclude(e => e.student)
+                                  .ThenInclude(s => s.User),
+                cancellationToken);
 
 
         var paymentResponses = payments.Adapt<IEnumerable<PaymentResponse>>();
@@ -127,7 +130,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
         await _unitOfWork.Repository<Payment>().AddAsync(payment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        
+
         return Result.Success(paymentIntent.ClientSecret);
     }
 
@@ -193,7 +196,7 @@ public class PaymentService : BaseRepository<Payment>, IPaymentService
 
     public async Task<Result<ReBackMonyResponse>> RefundPaymentAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
-       
+
         var payment = await _unitOfWork.Repository<Payment>()
                                          .FirstOrDefaultAsync(x => x.PaymentId == paymentId && x.IsActive,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);

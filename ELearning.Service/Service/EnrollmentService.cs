@@ -11,6 +11,9 @@ using ELearning.Data.Contracts.Payment;
 using ELearning.Data.Consts;
 using Azure.Core;
 using ELearning.Data.Contracts.Answer;
+using System.ComponentModel;
+using ELearning.Data.Contracts.Comment;
+using Stripe.Forwarding;
 namespace ELearning.Service.Service;
 
 public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
@@ -19,12 +22,16 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPaymentService _paymentService;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public EnrollmentService(ApplicationDbContext context, IUnitOfWork unitOfWork, IPaymentService paymentService) : base(context)
+
+    public EnrollmentService(ApplicationDbContext context, IUnitOfWork unitOfWork, IPaymentService paymentService,ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
         _paymentService = paymentService;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<EnrollmentResponse>> GetEnrollmentByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -79,37 +86,75 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
- 
-    public async Task<IEnumerable<EnrollmentResponse>> GetAllEnrollmentsAsync(CancellationToken cancellationToken = default)
+   
+    public async Task<Result<IEnumerable<EnrollmentResponse>>> GetAllEnrollmentsAsync(CancellationToken cancellationToken = default)
     {
+        var cacheKey = "Enrollments:GetAll";
+
+
+        // Check if data is in the cache
+        var cachedEnrollments = await _cacheService.GetCacheAsync<IEnumerable<EnrollmentResponse>>(cacheKey);
+
+        if (cachedEnrollments != null)
+        {
+            return Result.Success(cachedEnrollments);
+        }
+
+        // Retrieve enrollments from the database
         var enrollments = await _unitOfWork.Repository<Enrollment>()
             .FindAsync(
                 s => s.IsActive,
-                include: q => q.Include(s => s.student)
-                                .ThenInclude(x => x.User)
-                               .Include(s => s.course)
-                               .Include(s => s.CreatedBy),
-                cancellationToken: cancellationToken);
+                include: query => query.Include(e => e.student)
+                                       .ThenInclude(s => s.User)
+                                       .Include(e => e.course)
+                                       .Include(e => e.CreatedBy),
+                cancellationToken: cancellationToken
+            );
 
+        // Adapt enrollments to EnrollmentResponse
+        var enrollmentResponses = enrollments.Adapt<IEnumerable<EnrollmentResponse>>();
 
-        return enrollments.Adapt<IEnumerable<EnrollmentResponse>>();
+        // Cache the adapted response
+        await _cacheService.SetCacheAsync(cacheKey, enrollmentResponses, _cacheDuration);
+
+        return Result.Success(enrollmentResponses);
     }
 
-    public async Task<IEnumerable<EnrollmentResponse>> GetEnrollmentCoursesForStudentAsync(string userId)
+    public async Task<Result<IEnumerable<EnrollmentResponse>>> GetEnrollmentCoursesForStudentAsync(string userId,CancellationToken cancellationToken)
     {
-        var student = await _context.Students
-            .Include(s => s.Enrollments)
-             .ThenInclude(e => e.course)
-            .FirstOrDefaultAsync(s => s.User.Id == userId && s.IsActive);
-
-        if (student == null)
+        // Check if the user exists
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == userId))
         {
-            return Enumerable.Empty<EnrollmentResponse>(); // Return an empty list if student is not found
+            return Result.Failure<IEnumerable<EnrollmentResponse>>(UserErrors.UserNotFound);
         }
 
-        return student.Adapt<IEnumerable<EnrollmentResponse>>();
+        var enrollments = await _unitOfWork.Repository<Enrollment>()
+            .FindAsync(
+                x => x.student.UserId == userId
+                     && x.IsActive
+                     && x.student.IsActive,
+                q => q.Include(e => e.student)
+                      .ThenInclude(s => s.User)
+                      .Include(e => e.course)
+                      .Include(e => e.CreatedBy),
+                cancellationToken // pass the CancellationToken here
+            );
 
+
+
+
+
+
+        if (enrollments == null || !enrollments.Any())
+        {
+            return Result.Failure<IEnumerable<EnrollmentResponse>>(EnrollmentErrors.EnrollmentNotFound);
+        }
+
+        var mappedEnrollments = enrollments.Adapt<IEnumerable<EnrollmentResponse>>();
+
+        return Result.Success(mappedEnrollments);
     }
+
 
     public async Task<Result<EnrollmentResponse>> CreateEnrollmentAsync(EnrollmentAddRequest request, string EnrollmentStatus, CancellationToken cancellationToken = default)
     {
@@ -146,6 +191,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         // If enrollment added successfully, proceed with payment
         await _paymentService.CreatePaymentAsync(new PaymentRequest(enrollment.EnrollmentId, enrollment.StudentId, enrollment.CourseId), PaymentStatus.Completed, cancellationToken);
+
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Enrollments:GetAll");
 
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
@@ -227,6 +276,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         await _unitOfWork.Repository<Enrollment>().UpdateAsync(enrollment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Enrollments:GetAll");
+
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
 
@@ -241,6 +294,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         enrollment.IsActive = !enrollment.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Enrollments:GetAll");
 
         return Result.Success();
     }
@@ -282,6 +339,10 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
                                       new PaymentRequest(enrollmentId, enrollment.StudentId, enrollment.CourseId),
                                       cancellationToken);
         }
+
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Enrollments:GetAll");
 
 
         return Result.Success();

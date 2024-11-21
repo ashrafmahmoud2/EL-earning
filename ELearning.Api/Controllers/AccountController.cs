@@ -1,4 +1,6 @@
-﻿namespace ELearning.Api.Controllers;
+﻿using System.Threading;
+
+namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -33,19 +35,19 @@ public class AccountController(IUserService userService,IEnrollmentService enrol
     }
 
 
-    [HttpGet("enrollment-courses/{userId}")]
-    public async Task<IActionResult> GetEnrollmentCoursesForStudent([FromRoute] string userId)
+    [HttpGet("enrollment-courses")]
+    public async Task<IActionResult> GetEnrollmentCoursesForStudent(CancellationToken cancellationToken)
     {
+        var result = await _enrollmentService.GetEnrollmentCoursesForStudentAsync(User.GetUserId()!, cancellationToken);
         
-        var result = await _enrollmentService.GetEnrollmentCoursesForStudentAsync(userId);
-        return  Ok(result);
+        return Ok(result.Value) ;
     }
 
 
-    [HttpGet("payments/{userId}")]
-    public async Task<IActionResult> GetAllPaymentsHeHasMade([FromRoute] string userId)
+    [HttpGet("payments")]
+    public async Task<IActionResult> GetAllPaymentsHeHasMade(CancellationToken cancellationToken)
     {
-        var result = await _paymentService.GetAllPaymentsForStudentAsync(userId);
+        var result = await _paymentService.GetAllPaymentsForStudentAsync(User.GetUserId()!,cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 

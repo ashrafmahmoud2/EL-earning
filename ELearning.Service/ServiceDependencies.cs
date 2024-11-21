@@ -49,6 +49,7 @@ public static class ServiceDependencies
         services.AddScoped<IQuizAttemptService, QuizAttemptService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<ICacheService, CacheService>();
 
 
         services.AddMapsterConfig();

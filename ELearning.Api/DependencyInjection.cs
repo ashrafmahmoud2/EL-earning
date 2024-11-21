@@ -3,11 +3,14 @@ using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
 using ELearning.Data;
 using ELearning.Data.Consts;
 using ELearning.Data.Settings;
+using ELearning.Service.Service;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Stripe;
 using System.Reflection;
 using System.Threading.RateLimiting;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+
 
 namespace ELearning.Api
 {
@@ -35,11 +38,13 @@ namespace ELearning.Api
 
             //Dependencies of projects
             services.AddCustomServiceDependencies(configuration);
-            services.AddSwaggerConfig();
+            services.AddCacheingConfig(configuration);
             services.AddStripeConfig(configuration);
             services.AddCorsConfig(configuration);
             services.AddRateLimitingConfig();
-
+            services.AddSwaggerConfig();
+           
+            
 
 
             return services;
@@ -94,6 +99,7 @@ namespace ELearning.Api
                     }
                 });
             });
+
 
             return services;
         }
@@ -180,6 +186,19 @@ namespace ELearning.Api
             return services;
         }
 
+        private static IServiceCollection AddCacheingConfig(this IServiceCollection services, IConfiguration configuration)
+        {
+            var redisConfiguration = configuration["RedisCacheServerUrl"]; // You can choose which key to use
+            var instanceName = configuration["Redis:InstanceName"] ?? "ELearning_"; // Default instance name
 
+            // Add Redis Cache
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConfiguration; // Redis server configuration from appsettings.json
+                options.InstanceName = instanceName; // Prefix for keys stored in Redis (optional)
+            });
+
+            return services;
+        }
     }
 }

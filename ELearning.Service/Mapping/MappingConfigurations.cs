@@ -48,7 +48,6 @@ public class MappingConfigurations : IRegister
 
 
         //Answer
-
         TypeAdapterConfig<Answer, AnswerResponse>.NewConfig()
         .Map(dest => dest.CreatedBy, src => src.CreatedBy.FirstName + " " + src.CreatedBy.LastName);
 
@@ -135,7 +134,7 @@ public class MappingConfigurations : IRegister
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
            .Map(dest => dest.LessoneName, src => src.Lesson.Title);
 
-        //Quiz
+        //Section
         config.NewConfig<Section, SectionResponse>()
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
                       .Map(dest => dest.CourseTitle, src => src.Course.Title);

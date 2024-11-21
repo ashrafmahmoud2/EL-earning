@@ -8,17 +8,23 @@ using ELearning.Service.IService;
 using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Errors;
 using ELearning.Data.Contracts.Quiz;
+using ELearning.Data.Contracts.Lesson;
 namespace ELearning.Service.Service;
 
 public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptService
 {
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public QuizAttemptService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+
+    public QuizAttemptService(ApplicationDbContext context, IUnitOfWork unitOfWork, ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
+
     }
 
     public async Task<Result<QuizAttemptResponse>> GetQuizAttemptByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -39,7 +45,16 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
     public async Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
     {
+        var cacheKey = "QuizAttempt:GetAll";
 
+       
+
+        var cachedQuizAttempts = await _cacheService.GetCacheAsync<IEnumerable<QuizAttemptResponse>>(cacheKey);
+
+        if (cachedQuizAttempts != null)
+        {
+            return cachedQuizAttempts;
+        }
         var quizAttempts = await _unitOfWork.Repository<QuizAttempt>()
                                      .FindAsync(
                                       s => s.IsActive,
@@ -49,7 +64,13 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
                                            .ThenInclude(x => x.User),
                                       cancellationToken);
 
-        return quizAttempts.Adapt<IEnumerable<QuizAttemptResponse>>();
+
+        var quizAttemptsResponses = quizAttempts.Adapt<IEnumerable<QuizAttemptResponse>>();
+
+        // Cache the adapted response
+        await _cacheService.SetCacheAsync(cacheKey, quizAttemptsResponses, _cacheDuration);
+
+        return quizAttemptsResponses;
     }
 
     public async Task<Result> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)
@@ -77,6 +98,9 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         await _unitOfWork.Repository<QuizAttempt>().AddAsync(quizAttempt, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("QuizAttempt:GetAll");
+
         var response = quizAttempt.Adapt<QuizAttemptResponse>();
         return Result.Success(response);
     }
@@ -100,6 +124,9 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
         await _unitOfWork.Repository<QuizAttempt>().UpdateAsync(quizAttempt, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("QuizAttempt:GetAll");
 
         var response = quizAttempt.Adapt<QuizAttemptResponse>();
         return Result.Success(response);
@@ -147,6 +174,9 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         QuizAttempt.IsActive = !QuizAttempt.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("QuizAttempt:GetAll");
 
         return Result.Success();
     }

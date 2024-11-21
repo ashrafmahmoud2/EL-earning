@@ -11,6 +11,7 @@ using ELearning.Data.Contracts.Students;
 using ELearning.Data.Contracts.Instrctors;
 using ELearning.Data.Contracts.Comment;
 using Mailjet.Client.Resources;
+using System.Xml.Linq;
 namespace ELearning.Service.Service;
 
 public class InstructorService : BaseRepository<Instructor>, IInstructorService
@@ -19,25 +20,48 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public InstructorService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+    public InstructorService(ApplicationDbContext context, IUnitOfWork unitOfWork, ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<IEnumerable<InstructorResponse>> GetAllInstructorsAsync(CancellationToken cancellationToken = default)
     {
+        var cacheKey = "Instructors:GetAll";
+
+       
+
+        // Check if data is in the cache
+        var cachedInstructors = await _cacheService.GetCacheAsync<IEnumerable<InstructorResponse>>(cacheKey);
+
+        if (cachedInstructors != null)
+        {
+            return cachedInstructors;
+        }
+
+        // Retrieve instructors from the database
         var instructors = await _unitOfWork.Repository<Instructor>()
             .FindAsync(
                 x => x.IsActive,
-                q => q.Include(s => s.CreatedBy)
-                .Include(s => s.User),
-                cancellationToken: cancellationToken);
+                include: q => q.Include(s => s.CreatedBy)
+                               .Include(s => s.User),
+                cancellationToken: cancellationToken
+            );
 
+        // Adapt instructors to InstructorResponse
+        var instructorResponses = instructors.Adapt<IEnumerable<InstructorResponse>>();
 
-        return instructors.Adapt<IEnumerable<InstructorResponse>>();
+        // Cache the adapted response
+        await _cacheService.SetCacheAsync(cacheKey, instructorResponses, _cacheDuration);
+
+        return instructorResponses;
     }
+
 
     public async Task<Result<InstructorResponse>> GetInstructorByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
@@ -75,6 +99,10 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         };
         await _unitOfWork.Repository<Instructor>().AddAsync(Instructor, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Instructors:GetAll");
+
         return Result.Success(Instructor.Adapt<InstructorResponse>());
     }
 
@@ -105,6 +133,9 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         await _unitOfWork.Repository<Instructor>().UpdateAsync(instructor, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Instructors:GetAll");
+
         return Result.Success();
     }
 
@@ -124,6 +155,9 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
 
         // Save changes to the database
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Instructors:GetAll");
 
         return Result.Success();
     }

@@ -16,11 +16,14 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public LessonService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+    public LessonService(ApplicationDbContext context, IUnitOfWork unitOfWork, ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<LessonResponse>> GetLessonByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -42,6 +45,19 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
     public async Task<IEnumerable<LessonResponse>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
     {
+        var cacheKey = "Lessons:GetAll";
+
+       
+
+        // Check if data is in the cache
+        var cachedLessons = await _cacheService.GetCacheAsync<IEnumerable<LessonResponse>>(cacheKey);
+
+        if (cachedLessons != null)
+        {
+            return cachedLessons;
+        }
+
+
         var lessons = await _unitOfWork.Repository<Lesson>()
                                         .FindAsync(x =>  x.IsActive,
                                         q => q.Include(x => x.CreatedBy)
@@ -51,7 +67,12 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
 
 
-        return lessons.Adapt<IEnumerable<LessonResponse>>();
+        var lessonsResponses = lessons.Adapt<IEnumerable<LessonResponse>>();
+
+        // Cache the adapted response
+        await _cacheService.SetCacheAsync(cacheKey, lessonsResponses, _cacheDuration);
+
+        return lessonsResponses;
     }
 
     public async Task<Result> CreateLessonAsync(LessonRequest request, CancellationToken cancellationToken = default)
@@ -73,6 +94,10 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
 
         await _unitOfWork.Repository<Lesson>().AddAsync(Lesson, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Lessons:GetAll");
+
         return Result.Success();
     }
 
@@ -98,6 +123,9 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         await _unitOfWork.Repository<Lesson>().UpdateAsync(lesson, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Lessons:GetAll");
+
         return Result.Success(lesson.Adapt<LessonResponse>());
     }
 
@@ -115,6 +143,9 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         lesson.IsActive = !lesson.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Lessons:GetAll");
 
         return Result.Success();
     }

@@ -19,6 +19,7 @@ using Mailjet.Client.Resources;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using ELearning.Data.Contracts.Lesson;
 namespace ELearning.Service.Service;
 
 
@@ -28,11 +29,15 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICacheService _cacheService;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public StudentService(ApplicationDbContext context, IUnitOfWork unitOfWork) : base(context)
+
+    public StudentService(ApplicationDbContext context, IUnitOfWork unitOfWork, ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
+        _cacheService = cacheService;
     }
 
     public async Task<Result<StudentResponse>> GetStudentByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -53,6 +58,16 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
     public async Task<IEnumerable<StudentResponse>> GetAllStudentsAsync(CancellationToken cancellationToken = default)
     {
+        var cacheKey = "Student:GetAll";
+
+        // Check if data is in the cache
+        var cachedStudents = await _cacheService.GetCacheAsync<IEnumerable<StudentResponse>>(cacheKey);
+
+        if (cachedStudents != null)
+        {
+            return cachedStudents;
+        }
+
 
         var students = await _unitOfWork.Repository<Student>()
             .FindAsync(
@@ -61,7 +76,13 @@ public class StudentService : BaseRepository<Student>, IStudentService
                  .Include(s => s.User),
                 cancellationToken: cancellationToken);
 
-        return students.Adapt<IEnumerable<StudentResponse>>();
+
+        var studentsResponses = students.Adapt<IEnumerable<StudentResponse>>();
+
+        // Cache the adapted response
+        await _cacheService.SetCacheAsync(cacheKey, studentsResponses, _cacheDuration);
+
+        return studentsResponses;
     }
 
     public async Task<Result> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)
@@ -78,6 +99,10 @@ public class StudentService : BaseRepository<Student>, IStudentService
         };
         await _unitOfWork.Repository<Student>().AddAsync(student, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+        // Remove the cached 
+        await _cacheService.RemoveCacheAsync("Student:GetAll");
+        
         return Result.Success();
     }
 
@@ -104,13 +129,17 @@ public class StudentService : BaseRepository<Student>, IStudentService
         await _unitOfWork.Repository<Student>().UpdateAsync(student, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+
+        // Remove the cached students
+        await _cacheService.RemoveCacheAsync("Student:GetAll");
+
         return Result.Success(student.Adapt<StudentResponse>());
     }
 
     public async Task<Result> ToggleStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var student = await _unitOfWork.Repository<Student>()
-                                         .FirstOrDefaultAsync(x => x.StudentId == id && x.IsActive,
+                                         .FirstOrDefaultAsync(x => x.StudentId == id ,
                                          q => q.Include(x => x.CreatedBy)
                                                 .Include(x => x.User)
                                          , cancellationToken);
@@ -122,6 +151,10 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
         // Save changes to the database
         await _unitOfWork.CompleteAsync(cancellationToken);
+
+
+        // Remove the cached students
+        await _cacheService.RemoveCacheAsync("Student:GetAll");
 
         return Result.Success();
     }
@@ -153,6 +186,10 @@ public class StudentService : BaseRepository<Student>, IStudentService
 
             // Commit transaction
             await _unitOfWork.CompleteAsync(cancellationToken);
+
+
+            // Remove the cached students
+            await _cacheService.RemoveCacheAsync("Student:GetAll");
 
             return Result.Success();
         }

@@ -10,9 +10,13 @@
 - In Create Coures make Him Add ++ one in numOfCouress in category tabel
 - user permission in project , with fix  var users = await _userManager.GetUsersInRoleAsync(DefaultRoles.Member.Name); in  INotificationService
 -make all lessone , comment cqrs and make it user result pattern;
+-Delet IsActive in toggleStatus 
 
 
-
+/*caching
+ * 2. User Profile and Enrollment Information
+ * 3. Quiz and Exam Questions
+ * 4. Course Content (Video, Documents, and Media Files)
 
 |:::::::::::::|NEED TO FIX|:::::::::::::::|
 
