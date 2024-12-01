@@ -6,7 +6,6 @@
 - Add Hybird Caching
 
 
-- Add checks valadation in All Udate&Add duplicted services to check duplication
 -make all lessone , comment cqrs and make it user result pattern;
 
 
@@ -23,9 +22,8 @@
 
 
 
-|:::::::::::::|NEED TO REVIEW|:::::::::::::|
-
-
+|:::::::::::::|Readme|:::::::::::::|
+- Add hybird chach in CommentService
 
 
 

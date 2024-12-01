@@ -62,8 +62,7 @@ public class CourseService : BaseRepository<Course>, ICourseService
         var cacheKey = $"Courses_{filters.PageNumber}_{filters.PageSize}_{filters.SortColumn}_{filters.SortDirection}_{filters.SearchValue}";
 
 
-      
-
+     
         // Check if data is in the cache
         var cachedCourses = await _cacheService.GetCacheAsync<PaginatedList<CourseResponse>>(cacheKey);
         if (cachedCourses != null)

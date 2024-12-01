@@ -12,20 +12,22 @@ using ELearning.Data.Contracts.Answer;
 using Azure;
 using ELearning.Data.Abstractions;
 using ELearning.Data.Contracts.Course;
+using Microsoft.Extensions.Caching.Hybrid;
 namespace ELearning.Service.Service;
 
 public class CommentService : BaseRepository<Comment>, ICommentService
 {
+   
     private readonly ApplicationDbContext _context;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ICacheService _cacheService;
+    private readonly HybridCache _hybridCache;
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
-    public CommentService(ApplicationDbContext context, IUnitOfWork unitOfWork, ICacheService cacheService) : base(context)
+    public CommentService(ApplicationDbContext context, IUnitOfWork unitOfWork, HybridCache hybridCache) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
-        _cacheService = cacheService;
+        _hybridCache = hybridCache;
     }
 
     public async Task<Result<CommentResponse>> GetCommentByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -47,30 +49,31 @@ public class CommentService : BaseRepository<Comment>, ICommentService
     {
         var cacheKey = "Comments:GetAll";
 
-
         // Check if data is in the cache
-        var cachedComments = await _cacheService.GetCacheAsync<IEnumerable<CommentResponse>>(cacheKey);
+        var cachedComments = await _hybridCache.GetOrCreateAsync<IEnumerable<CommentResponse>>(
+            cacheKey,
 
-        if (cachedComments != null)
-        {
-            return Result.Success(cachedComments);
-        }
+            async ct =>
+            {
+                // Retrieve comments from the database
+                var comments = await _unitOfWork.Repository<Comment>()
+                    .FindAsync(
+                        s => s.IsActive,
+                        query => query.Include(c => c.ApplicationUser),
+                        ct // Pass the cancellation token to the FindAsync method
+                    );
 
-        // Retrieve comments from the database
-        var comments = await _unitOfWork.Repository<Comment>()
-                            .FindAsync(
-                                s => s.IsActive,
-                                query => query.Include(c => c.ApplicationUser),
-                                cancellationToken
-                            );
+                // Adapt comments to CommentResponse
+                var commentResponses = comments.Adapt<IEnumerable<CommentResponse>>();
 
-        // Adapt comments to CommentResponse
-        var commentResponses = comments.Adapt<IEnumerable<CommentResponse>>();
+                return commentResponses;
+            },
 
-        // Cache the adapted response
-        await _cacheService.SetCacheAsync(cacheKey, commentResponses, _cacheDuration);
+            options: null,
+            cancellationToken: cancellationToken
+        );
 
-        return Result.Success(commentResponses);
+        return Result.Success(cachedComments);
     }
 
     public async Task<Result> CreateCommentAsync(CommentRequest request, CancellationToken cancellationToken = default)
@@ -96,7 +99,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         // Remove the cached 
-        await _cacheService.RemoveCacheAsync("Comments:GetAll");
+        await _hybridCache.RemoveAsync("Comments:GetAll");
 
         return Result.Success();
     }
@@ -129,7 +132,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         // Remove the cached 
-        await _cacheService.RemoveCacheAsync("Comments:GetAll");
+        await _hybridCache.RemoveAsync("Comments:GetAll");
 
         return Result.Success(Comment.Adapt<CommentResponse>());
     }
@@ -147,7 +150,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         // Remove the cached 
-        await _cacheService.RemoveCacheAsync("Comments:GetAll");
+        await _hybridCache.RemoveAsync("Comments:GetAll");
 
         return Result.Success();
     }

@@ -10,6 +10,7 @@ using Stripe;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Caching.Hybrid;
 
 
 namespace ELearning.Api
@@ -20,8 +21,10 @@ namespace ELearning.Api
         {
             services.AddControllers();
 
+               #pragma warning disable 
+          services.AddHybridCache();
+               #pragma warning restore
 
-          
             // Configure database connection
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -43,8 +46,8 @@ namespace ELearning.Api
             services.AddCorsConfig(configuration);
             services.AddRateLimitingConfig();
             services.AddSwaggerConfig();
-           
-            
+
+
 
 
             return services;
