@@ -4,7 +4,7 @@ public record CategoryResponse
 (
     Guid CategoryId,
     string Name,
-   int NumberOfCourses,
+ //  int NumberOfCourses,
    bool IsActive,
    string CreatedBy,
    DateTime CreatedOn

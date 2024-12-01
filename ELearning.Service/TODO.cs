@@ -1,11 +1,9 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
 
-- DO All steps in project steps/cacheing-pagination filtering-ratelimiting
-- Do Autherzation in cotrooler like Admin , student , with fix the userID IN Appliction db context
 - Put Docker in prject;
 - Add checks valadation in All Udate&Add duplicted services to check duplication
-- Add swagger ui get by give gpt Reqests , services , response 
+- make  swagger ui Documantion
 - Handel Golale Using
 - In Create Coures make Him Add ++ one in numOfCouress in category tabel
 - user permission in project , with fix  var users = await _userManager.GetUsersInRoleAsync(DefaultRoles.Member.Name); in  INotificationService

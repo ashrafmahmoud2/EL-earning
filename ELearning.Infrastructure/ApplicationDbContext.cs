@@ -57,9 +57,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         foreach (var entityEntry in entries)
         {
-            //var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             // _httpContextAccessor.HttpContext?.User.GetUserId()!;
-            var currentUserId = "019307f3-a39a-70f9-9d25-28442e102806";
+           // var currentUserId = "019307f3-a39a-70f9-9d25-28442e102806";
 
             if (entityEntry.State == EntityState.Added)
             {

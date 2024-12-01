@@ -42,19 +42,19 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         return categorys.Adapt<IEnumerable<CategoryResponse>>();
 
     }
-
-    public async Task<Result<CategoryResponse>> CreateCategoryAsync(CategoryRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> CreateCategoryAsync(CategoryRequest request, CancellationToken cancellationToken = default)
     {
-        if (request is null)
-            Result.Failure(CategorysErrors.CategoryNotFound);
-
+        if (request == null)
+            return Result.Failure(CategorysErrors.CategoryNotFound);
 
         var category = request.Adapt<Category>();
         await _unitOfWork.Repository<Category>().AddAsync(category, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
-        var result = category.Adapt<CategoryResponse>();
-        return Result.Success(result);
+
+        return Result.Success();
     }
+
+
 
     public async Task<Result<CategoryResponse>> UpdateCategoryAsync(Guid id, CategoryRequest request, CancellationToken cancellationToken = default)
     {

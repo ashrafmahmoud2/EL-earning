@@ -56,20 +56,16 @@ public class MappingConfigurations : IRegister
 
 
         //Category
-
         config.NewConfig<Category, CategoryResponse>()
-        // .Map(dest => dest.CreatedBy, src => src.CreatedBy.FirstName + "" + src.CreatedBy.LastName);
-        .Map(dest => dest.CreatedBy, src => src.CreatedBy != null
-     ? src.CreatedBy.FirstName + " " + src.CreatedBy.LastName
-     : "Unknown");
-
+        .Map(dest => dest.CreatedOn, src => src.CreatedOn)
+        .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}");
 
 
         //Comment
         config.NewConfig<Comment, CommentResponse>()
             .Map(dest => dest.CommentedBy, serc => serc.ApplicationUser.FirstName + " " + serc.ApplicationUser.LastName);
 
-       
+
 
 
         //Course
@@ -103,16 +99,12 @@ public class MappingConfigurations : IRegister
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
            .Map(dest => dest.sectionName, src => src.Section.Title);
 
-        //Category
-        config.NewConfig<Category, CategoryResponse>()
-           .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}");
-        
 
 
         //Payment
         config.NewConfig<Payment, PaymentResponse>()
            .Map(dest => dest.CreatedBy, src => $"{src.CreatedBy.FirstName} {src.CreatedBy.LastName}")
-           .Map(dest => dest.StudentName, src =>$"{src.Enrollment.student.User.FirstName} {src.Enrollment.student.User.LastName}" )
+           .Map(dest => dest.StudentName, src => $"{src.Enrollment.student.User.FirstName} {src.Enrollment.student.User.LastName}")
            .Map(dest => dest.StudentId, src => src.Enrollment.StudentId)
            .Map(dest => dest.CourseId, src => src.Enrollment.CourseId)
            .Map(dest => dest.CourseTitle, src => src.Enrollment.course.Title);
