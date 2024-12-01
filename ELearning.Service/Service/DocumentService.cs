@@ -56,6 +56,10 @@ public class DocumentService : BaseRepository<Document>, IDocumentService
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
             return Result.Failure<DocumentResponse>(LessonsErrors.NotFound);
 
+
+        if (await _unitOfWork.Repository<Document>().AnyAsync(x => x.Title == request.Title&& x.IsActive))
+            return Result.Failure<DocumentResponse>(DocumentErrors.DuplicatedDocument);
+
         if (request is null)
             Result.Failure(DocumentsErrors.DocumentNotFound);
 

@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Abstractions.Const;
 using ELearning.Data.Entities;
+using ELearning.Data.Enums;
 using ELearning.Infrastructure;
 using ELearning.Infrastructure.Base;
 using ELearning.Service.IService;
@@ -34,7 +35,7 @@ public class NotificationService(
         if (!courses.Any())
             return; // Exit if no active courses found.
 
-        var users = await _userManager.GetUsersInRoleAsync(DefaultRoles.Member.Name);
+        var users = await _userManager.GetUsersInRoleAsync(UserRole.Student);
         var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
 
         foreach (var course in courses)

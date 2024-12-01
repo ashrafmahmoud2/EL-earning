@@ -1,23 +1,18 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
-
 - Put Docker in prject;
-- Add checks valadation in All Udate&Add duplicted services to check duplication
+- Handel Golale Using;
 - make  swagger ui Documantion
-- Handel Golale Using
-- In Create Coures make Him Add ++ one in numOfCouress in category tabel
-- user permission in project , with fix  var users = await _userManager.GetUsersInRoleAsync(DefaultRoles.Member.Name); in  INotificationService
+- Add Hybird Caching
+
+
+- Add checks valadation in All Udate&Add duplicted services to check duplication
 -make all lessone , comment cqrs and make it user result pattern;
--Delet IsActive in toggleStatus 
 
 
-/*caching
- * 2. User Profile and Enrollment Information
- * 3. Quiz and Exam Questions
- * 4. Course Content (Video, Documents, and Media Files)
+
 
 |:::::::::::::|NEED TO FIX|:::::::::::::::|
-
  - fix the send email send :: he cant find Data project just find Api prjct
  - FIX THE AddAsync2 IN RolesController
  - fix UpdateCourseAsync in couress services;
@@ -29,17 +24,11 @@
 
 
 |:::::::::::::|NEED TO REVIEW|:::::::::::::|
-- see the Rep section in bookfiy
-- Guid in c# OR CREATE Vervier 7 the vido in code refectory
-- is ICollection in mkae fronie key , what it's,is it best prictec;
--Is it importent to put the ForeignKey cofig if if oredy in the sql db
 
 
 
-|:::::::::::::|secent|:::::::::::::::::::::::::|
-- Handel froined key whene Delete;
-- result pattern 
-- Make firstOrDefult
+
+
 
   
 
@@ -53,13 +42,6 @@
 | `test`     | `quiz`    | Adding or updating tests                             | `test(quiz): add unit tests for quiz attempt validation logic`      |
 | `chore`    | `backend` | Maintenance or setup tasks                           | `chore(backend): update dependencies for improved security`         |
 
-|:::::::::::::|MY PROJECT|:::::::::::::|
-
-- STRIP PAYMENT 
--option pattern
-- the names in poroject steps
-- hangfire
--
 
 
 

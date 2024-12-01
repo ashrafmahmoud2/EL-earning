@@ -55,6 +55,10 @@ public class QuestionService : BaseRepository<Question>, IQuestionService
         if (!await _unitOfWork.Repository<Quiz>().AnyAsync(x => x.QuizId == request.QuizId))
             return Result.Failure<QuestionResponse>(QuizsErrors.NotFound);
 
+          if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.Text == request.Text))
+            return Result.Failure<QuestionResponse>(QuestionErrors.DuplicatedQuestion);
+
+
         if (request is null)
             Result.Failure(QuestionsErrors.NotFound);
         var question = request.Adapt<Question>();

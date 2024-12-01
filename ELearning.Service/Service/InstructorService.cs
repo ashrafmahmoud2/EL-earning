@@ -85,6 +85,8 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == user.Id))
             return Result.Failure<InstructorResponse>(UserErrors.UserNotFound);
 
+        if (await _unitOfWork.Repository<Instructor>().AnyAsync(x => x.User.Email == request.Email && x.IsActive, cancellationToken))
+            return Result.Failure<InstructorResponse>(InstructorsErrors.DuplicatedInstructor);
 
         if (request is null)
             Result.Failure(InstructorsErrors.InstructorNotFound);

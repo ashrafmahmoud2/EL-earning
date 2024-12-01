@@ -68,7 +68,6 @@ public class SectionService : BaseRepository<Section>, ISectionService
         return sections.Adapt<IEnumerable<SectionWithLessonsResponse>>();
     }
 
-
     public async Task<Result> CreateSectionAsync(SectionRequest request, CancellationToken cancellationToken = default)
     {
 
@@ -98,6 +97,9 @@ public class SectionService : BaseRepository<Section>, ISectionService
 
         if (!await _unitOfWork.Repository<Course>().AnyAsync(x => x.CourseId == request.CourseId && x.IsActive))
             return Result.Failure<SectionResponse>(CoursesErrors.NotFound);
+
+        if (await _unitOfWork.Repository<Course>().AnyAsync(x => x.Title == request.Title && request.CourseId != x.CourseId && x.IsActive))
+            return Result.Failure<SectionResponse>(CoursesErrors.DuplicatedCourse);
 
         var section = await _unitOfWork.Repository<Section>()
                                       .FirstOrDefaultAsync(x => x.SectionId == id,

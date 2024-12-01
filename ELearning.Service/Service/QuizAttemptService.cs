@@ -82,6 +82,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
             return Result.Failure<QuizAttemptResponse>(StudentsErrors.NotFound);
 
 
+
         if (request is null)
             return Result.Failure<QuizAttemptResponse>(QuizAttemptsErrors.NotFound);
 

@@ -7,6 +7,7 @@ using ELearning.Infrastructure;
 using Mapster;
 using ELearning.Data.Contracts.Categorys;
 using ELearning.Data.Errors;
+using ELearning.Data.Contracts.Section;
 namespace ELearning.Service.Service;
 
 public class CategoryService : BaseRepository<Category>, ICategoryService
@@ -47,6 +48,11 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         if (request == null)
             return Result.Failure(CategorysErrors.CategoryNotFound);
 
+        if (await _unitOfWork.Repository<Category>().AnyAsync(x => x.Name == request.Name && x.IsActive, cancellationToken))
+            return Result.Failure(CategoryErrors.DuplicatedCategory);
+
+
+
         var category = request.Adapt<Category>();
         await _unitOfWork.Repository<Category>().AddAsync(category, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
@@ -58,6 +64,9 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
 
     public async Task<Result<CategoryResponse>> UpdateCategoryAsync(Guid id, CategoryRequest request, CancellationToken cancellationToken = default)
     {
+        if (await _unitOfWork.Repository<Category>().AnyAsync(x => x.Name == request.Name && x.CategoryId != id && x.IsActive, cancellationToken))
+            return Result.Failure<CategoryResponse>(CategoryErrors.DuplicatedCategory);
+
         var category = await _unitOfWork.Repository<Category>()
                                          .FirstOrDefaultAsync(x => x.CategoryId == id && x.IsActive,
                                          q => q.Include(x => x.CreatedBy), cancellationToken);
@@ -68,7 +77,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
 
         category.Name = request.Name;
 
-         await _unitOfWork.Repository<Category>().UpdateAsync(category, cancellationToken);
+        await _unitOfWork.Repository<Category>().UpdateAsync(category, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         return Result.Success(category.Adapt<CategoryResponse>());
@@ -82,7 +91,7 @@ public class CategoryService : BaseRepository<Category>, ICategoryService
         if (category is null)
             return Result.Failure(CategorysErrors.CategoryNotFound);
 
-        category.IsActive= !category.IsActive;
+        category.IsActive = !category.IsActive;
 
         await _unitOfWork.CompleteAsync(cancellationToken);
 

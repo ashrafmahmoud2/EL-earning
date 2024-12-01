@@ -37,11 +37,25 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
         return Result.Success(AnswerResponse);
     }
 
+    public async Task<IEnumerable<AnswerResponse>> GetAllAnswersAsync(CancellationToken cancellationToken = default)
+    {
+        var Answers = await _unitOfWork.Repository<Answer>()
+                                         .FindAsync(x => x.IsActive,
+                                         q => q.Include(x => x.CreatedBy)
+                                               .Include(x => x.Question)
+                                         , cancellationToken);
+
+        return Answers.Adapt<IEnumerable<AnswerResponse>>();
+    }
+
     public async Task<Result> CreateAnswerAsync(AnswerRequest request, CancellationToken cancellationToken = default)
     {
 
         if (!await _unitOfWork.Repository<Question>().AnyAsync(x => x.QuestionId == request.QuestionId))
             return Result.Failure<AnswerResponse>(QuestionsErrors.NotFound);
+
+        if (await _unitOfWork.Repository<Answer>().AnyAsync(x => x.Text == request.Text && x.IsActive))
+            return Result.Failure<AnswerResponse>(AnswerErrors.DuplicatedAnswer);
 
         if (request is null)
             Result.Failure(AnswersErrors.NotFound);
@@ -52,17 +66,6 @@ public class AnswerService : BaseRepository<Answer>, IAnswerService
         await _unitOfWork.Repository<Answer>().AddAsync(Answer, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
         return Result.Success();
-    }
-
-    public async Task<IEnumerable<AnswerResponse>> GetAllAnswersAsync(CancellationToken cancellationToken = default)
-    {
-        var Answers = await _unitOfWork.Repository<Answer>()
-                                         .FindAsync(x => x.IsActive,
-                                         q => q.Include(x => x.CreatedBy)
-                                               .Include(x => x.Question)
-                                         , cancellationToken);
-
-        return Answers.Adapt<IEnumerable<AnswerResponse>>();
     }
 
     public async Task<Result<AnswerResponse>> UpdateAnswerAsync(Guid AnswerId, AnswerRequest request, CancellationToken cancellationToken = default)
