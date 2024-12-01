@@ -1,15 +1,4 @@
-﻿using ELearning.Core.MediatrHandlers.Student.Queries.GetAllStudents;
-using ELearning.Core.MediatrHandlers.Student.Queries.GetStudentById;
-using ELearning.Api.Base;
-using ELearning.Core.MediatrHandlers.Student.Commands.UpdateStudent;
-using ELearning.Infrastructure.Base;
-using ELearning.Service.IService;
-using ELearning.Service.Service;
-using ELearning.Data.Contracts.Students;
-using System.Threading;
-using ELearning.Data.Enums;
-
-namespace ELearning.Api.Controllers;
+﻿namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

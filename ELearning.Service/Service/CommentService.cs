@@ -82,10 +82,10 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
             return Result.Failure<CommentResponse>(LessonsErrors.NotFound);
 
-        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.commentedByUserId))
             return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
 
-        if (await _unitOfWork.Repository<Comment>().AnyAsync(x => x.LessonId == request.LessonId && x.ApplicationUser.Id == request.ApplicationUserID && x.Title == request.Title && x.CommentText == request.CommentText))
+        if (await _unitOfWork.Repository<Comment>().AnyAsync(x => x.LessonId == request.LessonId && x.ApplicationUser.Id == request.commentedByUserId && x.Title == request.Title && x.CommentText == request.CommentText))
             return Result.Failure<CommentResponse>(CommentsErrors.DuplicatedComment);
 
         if (request is null)
@@ -93,13 +93,14 @@ public class CommentService : BaseRepository<Comment>, ICommentService
 
 
         var comment = request.Adapt<Comment>();
-        comment.CommentedByUserId = request.ApplicationUserID;
+        comment.CommentedByUserId = request.commentedByUserId;
 
         await _unitOfWork.Repository<Comment>().AddAsync(comment, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         // Remove the cached 
-        await _hybridCache.RemoveAsync("Comments:GetAll");
+       await _hybridCache.RemoveAsync("Comments:GetAll");
+
 
         return Result.Success();
     }
@@ -109,7 +110,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
         if (!await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.LessonId == request.LessonId))
             return Result.Failure<CommentResponse>(LessonsErrors.NotFound);
 
-        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.ApplicationUserID))
+        if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == request.commentedByUserId))
             return Result.Failure<CommentResponse>(UserErrors.UserNotFound);
 
 

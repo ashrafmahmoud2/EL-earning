@@ -5,16 +5,11 @@
 - make  swagger ui Documantion
 
 
--make all lessone , comment cqrs and make it user result pattern;
-
 
 
 
 |:::::::::::::|NEED TO FIX|:::::::::::::::|
  - fix the send email send :: he cant find Data project just find Api prjct
- - FIX THE AddAsync2 IN RolesController
- - fix UpdateCourseAsync in couress services;
-- make user get all method , not findAsync , aadd repostory asnotracing;
 
  
 
@@ -23,6 +18,7 @@
 
 |:::::::::::::|Readme|:::::::::::::|
 - Add hybird chach in CommentService
+- Add CQRS in CommentService
 
 
 

@@ -1,10 +1,4 @@
-﻿using ELearning.Data.Consts;
-using ELearning.Data.Contracts.Lesson;
-using ELearning.Data.Entities;
-using ELearning.Data.Enums;
-using Microsoft.AspNetCore.RateLimiting;
-
-namespace ELearning.Api.Controllers;
+﻿namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

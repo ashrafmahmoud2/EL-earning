@@ -15,7 +15,7 @@ public class CommentRequestValidator : AbstractValidator<CommentRequest>
         RuleFor(x => x.LessonId)
            .NotEmpty();
 
-        RuleFor(x => x.ApplicationUserID)
+        RuleFor(x => x.commentedByUserId)
            .NotEmpty();
 
     }

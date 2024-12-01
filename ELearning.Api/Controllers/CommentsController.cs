@@ -37,37 +37,21 @@ public class CommentsController(ICommentService CommentService) : AppControllerB
         return CreateResponse(response);
     }
 
-    //[HttpGet("{id}")]
-    //public async Task<IActionResult> GetCommentById([FromRoute] Guid id, CancellationToken cancellationToken)
-    //{
-    //    var comment = await _CommentService.GetCommentByIdAsync(id, cancellationToken);
-    //    return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
-    //}
-
-
-    //[HttpGet("")]
-    //public async Task<IActionResult> GetAllComments()
-    //{
-    //    var comment = await _CommentService.GetAllCommentsAsync();
-
-    //    return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
-    //}
-
-
     [HttpPost("")]
-    public async Task<IActionResult> CreateComment([FromBody] CommentRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateComment([FromBody] CreateCommentCommand comment, CancellationToken cancellationToken)
     {
-        var comment = await _CommentService.CreateCommentAsync(request, cancellationToken);
+        var response = await Mediator.Send(comment,cancellationToken);
 
-        return comment.IsSuccess ? Created() : comment.ToProblem();
+        return response.IsSuccess ? Created() : response.ToProblem();
+
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateComment([FromRoute] Guid id, [FromBody] CommentRequest request, CancellationToken cancellationToken)
+    [HttpPut("")]
+    public async Task<IActionResult> UpdateComment( [FromBody] UpdateCommentCommand comment, CancellationToken cancellationToken)
     {
-        var comment = await _CommentService.UpdateCommentAsync(id, request, cancellationToken);
+        var response = await Mediator.Send(comment, cancellationToken);
 
-        return comment.IsSuccess ? Ok(comment.Value) : comment.ToProblem();
+        return response.IsSuccess ? Ok(response.Value) : response.ToProblem();
     }
 
 

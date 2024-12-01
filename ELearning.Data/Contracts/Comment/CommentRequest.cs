@@ -5,5 +5,5 @@ public record CommentRequest
      string Title,
      string CommentText,
      Guid LessonId,
-     string ApplicationUserID
+     string commentedByUserId
 );

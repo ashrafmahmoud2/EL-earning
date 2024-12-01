@@ -1,4 +1,5 @@
 ﻿using ELearning.Core.DTOs;
+using ELearning.Data.Abstractions.ResultPattern;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ELearning.Core.MediatrHandlers.Comments.Commands.CreateComment;
-public class CreateCommentCommand : IRequest<ApiResponse<CommentDto>>
+public class CreateCommentCommand : IRequest<Result<CommentDto>>
 {
     public string Title { get; set; } = string.Empty;
     public string CommentText { get; set; } = string.Empty;

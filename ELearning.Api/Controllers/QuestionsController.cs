@@ -1,8 +1,4 @@
-﻿using ELearning.Data.Contracts.Question;
-using ELearning.Data.Entities;
-using ELearning.Data.Enums;
-
-namespace ELearning.Api.Controllers;
+﻿namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
