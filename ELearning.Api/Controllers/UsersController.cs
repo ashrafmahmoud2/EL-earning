@@ -1,8 +1,11 @@
-﻿
+﻿using ELearning.Data.Enums;
 
 namespace ELearning.Api.Controllers;
+
+
 [Route("api/[controller]")]
 [ApiController]
+//[Authorize(Roles = UserRole.Admin)]
 public class UsersController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;
@@ -14,7 +17,6 @@ public class UsersController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Get([FromRoute] string id)
     {
         var result = await _userService.GetAsync(id);

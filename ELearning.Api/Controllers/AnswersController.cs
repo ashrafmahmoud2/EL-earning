@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Answer;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
@@ -8,6 +9,7 @@ namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiters.UserLimiter)]
+[Authorize]
 public class AnswersController(IAnswerService AnswerService) : ControllerBase
 {
     private readonly IAnswerService _AnswerService = AnswerService;
@@ -33,6 +35,7 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
 
 
     [HttpPost("")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> CreateAnswer([FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
         var answer = await _AnswerService.CreateAnswerAsync(request, cancellationToken);
@@ -43,6 +46,7 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
 
  
     [HttpPut("{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> UpdateAnswer([FromRoute] Guid id, [FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
         var answer = await  _AnswerService.UpdateAnswerAsync(id, request, cancellationToken);
@@ -52,6 +56,7 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
 
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusAnswer([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var answer = await _AnswerService.ToggleStatusAsync(id, cancellationToken);
@@ -61,6 +66,7 @@ public class AnswersController(IAnswerService AnswerService) : ControllerBase
 
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> DeleteAnswer([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var result = await _AnswerService.DeleteAnswerAsync(id, cancellationToken);

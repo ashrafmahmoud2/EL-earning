@@ -1,11 +1,15 @@
-﻿namespace ELearning.Api.Controllers;
+﻿using ELearning.Data.Enums;
+
+namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = UserRole.Admin)]
 public class RolesController(IRoleService roleService) : ControllerBase
 {
     private readonly IRoleService _roleService = roleService;
 
+   
     [HttpGet("")]
     public async Task<IActionResult> GetAll([FromQuery] bool includeDisabled, CancellationToken cancellationToken)
     {

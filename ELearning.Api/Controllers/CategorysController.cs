@@ -1,9 +1,12 @@
-﻿using ELearning.Data.Contracts.Categorys;
+﻿using ELearning.Data.Abstractions.ResultPattern;
+using ELearning.Data.Contracts.Categorys;
+using ELearning.Data.Enums;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class CategorysController(ICategoryService CategoryService) : ControllerBase
 {
     private readonly ICategoryService _CategoryService = CategoryService;
@@ -25,14 +28,17 @@ public class CategorysController(ICategoryService CategoryService) : ControllerB
     }
   
     [HttpPost("")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> CreateCategory([FromBody] CategoryRequest request, CancellationToken cancellationToken)
     {
-        var category = await _CategoryService.CreateCategoryAsync( request, cancellationToken);
 
-        return category.IsSuccess ? Ok(category.Value): category.ToProblem();
+        var categoryResult = await _CategoryService.CreateCategoryAsync(request, cancellationToken);
+
+        return categoryResult.IsSuccess? Created(): categoryResult.ToProblem();
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> UpdateCategory([FromRoute] Guid id, [FromBody] CategoryRequest request, CancellationToken cancellationToken)
     {
         var category = await _CategoryService.UpdateCategoryAsync(id, request, cancellationToken);
@@ -41,6 +47,7 @@ public class CategorysController(ICategoryService CategoryService) : ControllerB
     }
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusCategory([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var category = await _CategoryService.ToggleStatusAsync(id, cancellationToken);

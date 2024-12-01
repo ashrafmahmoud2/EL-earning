@@ -1,6 +1,7 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Course;
 using ELearning.Data.Contracts.Filters;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
@@ -8,6 +9,7 @@ namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiters.Concurrency)]
+[Authorize]
 public class CoursesController(ICourseService CourseService) : ControllerBase
 {
     private readonly ICourseService _CourseService = CourseService;
@@ -29,6 +31,7 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
     }
 
     [HttpPost("")]
+    [Authorize(Roles = UserRole.Admin)]
     public async Task<IActionResult> CreateCourse([FromBody] CourseRequest request, CancellationToken cancellationToken)
     {
         var course = await _CourseService.CreateCourseAsync(request, cancellationToken);
@@ -37,6 +40,7 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = UserRole.Admin)]
     public async Task<IActionResult> UpdateCourse([FromRoute] Guid id, [FromBody] CourseRequest request, CancellationToken cancellationToken)
     {
         var coures = await _CourseService.UpdateCourseAsync(id, request, cancellationToken);
@@ -45,6 +49,7 @@ public class CoursesController(ICourseService CourseService) : ControllerBase
     }
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = UserRole.Admin)]
     public async Task<IActionResult> ToggleStatusCourse([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var course = await _CourseService.ToggleStatusAsync(id, cancellationToken);

@@ -1,15 +1,18 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Payment;
+using ELearning.Data.Enums;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = UserRole.Admin)]
 public class PaymentsController(IPaymentService PaymentService) : ControllerBase
 {
       private readonly IPaymentService _PaymentService = PaymentService;
 
     [HttpGet("{id}")]
+
     public async Task<IActionResult> GetPaymentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var Payment = await _PaymentService.GetPaymentByIdAsync(id, cancellationToken);

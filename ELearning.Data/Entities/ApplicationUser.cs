@@ -9,6 +9,9 @@ namespace ELearning.Data.Entities;
 public class ApplicationUser : IdentityUser
 {
     //Password:P@ssword123
+
+
+
     public ApplicationUser()
     {
         Id = Guid.CreateVersion7().ToString();

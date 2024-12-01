@@ -7,15 +7,18 @@ using ELearning.Service.IService;
 using ELearning.Service.Service;
 using ELearning.Data.Contracts.Students;
 using System.Threading;
+using ELearning.Data.Enums;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = UserRole.Admin)]
 public class StudentsController(IStudentService studentService) : ControllerBase
 {
-    private readonly IStudentService _studentService = studentService;
+    private readonly IStudentService _studentService = studentService; 
 
+    [Authorize(Roles = UserRole.Student)]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetStudentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
@@ -41,7 +44,7 @@ public class StudentsController(IStudentService studentService) : ControllerBase
         return student.IsSuccess ? NoContent() : student.ToProblem();
     }
 
-    [HttpPut("Toggle_status{id}")]
+    [HttpPut("Toggle_status/{id}")]
     public async Task<IActionResult> ToggleStatusStudent([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var student = await _studentService.ToggleStatusAsync(id, cancellationToken);

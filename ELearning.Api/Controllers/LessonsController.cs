@@ -1,6 +1,7 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Lesson;
 using ELearning.Data.Entities;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
@@ -30,6 +31,7 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     }
 
     [HttpPost("")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> CreateLesson([FromBody] LessonRequest request, CancellationToken cancellationToken)
     {
         var Lesson = await _LessonService.CreateLessonAsync(request, cancellationToken);
@@ -38,6 +40,7 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> UpdateLesson([FromRoute]Guid id, [FromBody] LessonRequest request, CancellationToken cancellationToken)
     {
         var lesson = await _LessonService.UpdateLessonAsync(id, request, cancellationToken);
@@ -46,6 +49,7 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     }
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusLesson([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var lesson = await _LessonService.ToggleStatusAsync(id, cancellationToken);

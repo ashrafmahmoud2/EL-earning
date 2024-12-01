@@ -6,6 +6,7 @@ using ELearning.Core.MediatrHandlers.Student.Queries.GetCommenByIdQuery;
 using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Comment;
 using ELearning.Data.Entities;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -14,6 +15,7 @@ namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiters.UserLimiter)]
+[Authorize]
 public class CommentsController(ICommentService CommentService) : AppControllerBase
 {
     private readonly ICommentService _CommentService = CommentService;
@@ -70,6 +72,7 @@ public class CommentsController(ICommentService CommentService) : AppControllerB
 
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusComment([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var comment = await _CommentService.ToggleStatusAsync(id, cancellationToken);

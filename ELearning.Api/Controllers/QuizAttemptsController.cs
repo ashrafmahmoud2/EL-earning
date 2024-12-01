@@ -1,6 +1,7 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Entities;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
@@ -8,6 +9,7 @@ namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiters.Concurrency)]
+[Authorize]
 public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : ControllerBase
 {
     private readonly IQuizAttemptService _QuizAttemptService = QuizAttemptService;
@@ -23,6 +25,7 @@ public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : Co
 
 
     [HttpGet("")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> GetAllQuizAttempts()
     {
         var quizAttempts = await _QuizAttemptService.GetAllQuizAttemptsAsync();
@@ -51,6 +54,7 @@ public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : Co
 
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusQuizAttempt([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var quizAttempt = await _QuizAttemptService.ToggleStatusAsync(id, cancellationToken);

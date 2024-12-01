@@ -1,9 +1,11 @@
 ﻿using ELearning.Data.Contracts.Document;
+using ELearning.Data.Enums;
 
 namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class DocumentsController(IDocumentService DocumentService) : ControllerBase
 {
     private readonly IDocumentService _DocumentService = DocumentService;
@@ -28,6 +30,7 @@ public class DocumentsController(IDocumentService DocumentService) : ControllerB
 
 
     [HttpPost("")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> CreateDocument([FromBody] DocumentRequest request, CancellationToken cancellationToken)
     {
         var document = await _DocumentService.CreateDocumentAsync(request, cancellationToken);
@@ -38,6 +41,7 @@ public class DocumentsController(IDocumentService DocumentService) : ControllerB
 
  
     [HttpPut("{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> UpdateDocument([FromRoute] Guid id, [FromBody] DocumentRequest request, CancellationToken cancellationToken)
     {
         var document = await  _DocumentService.UpdateDocumentAsync(id, request, cancellationToken);
@@ -47,6 +51,7 @@ public class DocumentsController(IDocumentService DocumentService) : ControllerB
 
 
     [HttpPut("Toggle_status{id}")]
+    [Authorize(Roles = $"{UserRole.Admin},{UserRole.Instructor}")]
     public async Task<IActionResult> ToggleStatusDocument([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var document = await _DocumentService.ToggleStatusAsync(id, cancellationToken);

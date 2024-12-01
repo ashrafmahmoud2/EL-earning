@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Consts;
 using ELearning.Data.Contracts.Enrollment;
+using ELearning.Data.Enums;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace ELearning.Api.Controllers;
@@ -7,6 +8,7 @@ namespace ELearning.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [EnableRateLimiting(RateLimiters.UserLimiter)]
+[Authorize(Roles = UserRole.Admin)]
 public class EnrollmentsController : ControllerBase
 {
     private readonly IEnrollmentService _enrollmentService;
@@ -17,6 +19,7 @@ public class EnrollmentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = UserRole.Student)]
     public async Task<IActionResult> GetEnrollmentById([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id, cancellationToken);

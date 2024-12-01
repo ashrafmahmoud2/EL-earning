@@ -4,6 +4,7 @@ namespace ELearning.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AccountController(IUserService userService,IEnrollmentService enrollmentService,IPaymentService paymentService) : ControllerBase
 {
     // await _userManager.Users it like await _context.Users
@@ -39,8 +40,8 @@ public class AccountController(IUserService userService,IEnrollmentService enrol
     public async Task<IActionResult> GetEnrollmentCoursesForStudent(CancellationToken cancellationToken)
     {
         var result = await _enrollmentService.GetEnrollmentCoursesForStudentAsync(User.GetUserId()!, cancellationToken);
-        
-        return Ok(result.Value) ;
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
 
 
