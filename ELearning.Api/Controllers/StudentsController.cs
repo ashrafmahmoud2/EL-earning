@@ -33,7 +33,7 @@ public class StudentsController(IStudentService studentService) : ControllerBase
     {
         var student = await _studentService.GetAllStudentsAsync();
 
-        return Ok(student);
+        return student.IsSuccess ? Ok(student.Value) : student.ToProblem();
     }
 
     [HttpPut("{id}")]

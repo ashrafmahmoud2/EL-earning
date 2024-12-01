@@ -28,7 +28,7 @@ public class InstructorsController(IMediator mediator, IUnitOfWork unitOfWork, I
     public async Task<IActionResult> GetAllInstructors()
     {
         var instructors = await _instructorService.GetAllInstructorsAsync();
-        return Ok(instructors);
+        return instructors.IsSuccess ? Ok(instructors.Value) : instructors.ToProblem();
     }
 
 

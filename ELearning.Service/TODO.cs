@@ -3,7 +3,6 @@
 - Put Docker in prject;
 - Handel Golale Using;
 - make  swagger ui Documantion
-- Add Hybird Caching
 
 
 -make all lessone , comment cqrs and make it user result pattern;

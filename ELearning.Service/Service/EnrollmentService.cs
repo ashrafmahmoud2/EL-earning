@@ -26,7 +26,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
     private readonly TimeSpan _cacheDuration = TimeSpan.FromMinutes(10);
 
 
-    public EnrollmentService(ApplicationDbContext context, IUnitOfWork unitOfWork, IPaymentService paymentService,ICacheService cacheService) : base(context)
+    public EnrollmentService(ApplicationDbContext context, IUnitOfWork unitOfWork, IPaymentService paymentService, ICacheService cacheService) : base(context)
     {
         _context = context;
         _unitOfWork = unitOfWork;
@@ -86,30 +86,36 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
 
         return Result.Success(enrollment.Adapt<EnrollmentResponse>());
     }
-   
+
     public async Task<Result<IEnumerable<EnrollmentResponse>>> GetAllEnrollmentsAsync(CancellationToken cancellationToken = default)
     {
         var cacheKey = "Enrollments:GetAll";
 
 
         // Check if data is in the cache
-        var cachedEnrollments = await _cacheService.GetCacheAsync<IEnumerable<EnrollmentResponse>>(cacheKey);
+        var cachedResult = await _cacheService.GetCacheAsync<IEnumerable<EnrollmentResponse>>(cacheKey);
 
-        if (cachedEnrollments != null)
-        {
-            return Result.Success(cachedEnrollments);
-        }
+        if (cachedResult.IsSuccess && cachedResult.Value != null)      
+            return Result.Success(cachedResult.Value);
+        
+
+        if (cachedResult.IsFailure && cachedResult.Error != CashErrors.NotFound)
+            return Result.Failure<IEnumerable<EnrollmentResponse>>(cachedResult.Error);
+
+
+
+
 
         // Retrieve enrollments from the database
         var enrollments = await _unitOfWork.Repository<Enrollment>()
-            .FindAsync(
-                s => s.IsActive,
-                include: query => query.Include(e => e.student)
-                                       .ThenInclude(s => s.User)
-                                       .Include(e => e.course)
-                                       .Include(e => e.CreatedBy),
-                cancellationToken: cancellationToken
-            );
+                .FindAsync(
+                    s => s.IsActive,
+                    include: query => query.Include(e => e.student)
+                                           .ThenInclude(s => s.User)
+                                           .Include(e => e.course)
+                                           .Include(e => e.CreatedBy),
+                    cancellationToken: cancellationToken
+                );
 
         // Adapt enrollments to EnrollmentResponse
         var enrollmentResponses = enrollments.Adapt<IEnumerable<EnrollmentResponse>>();
@@ -120,7 +126,7 @@ public class EnrollmentService : BaseRepository<Enrollment>, IEnrollmentService
         return Result.Success(enrollmentResponses);
     }
 
-    public async Task<Result<IEnumerable<EnrollmentResponse>>> GetEnrollmentCoursesForStudentAsync(string userId,CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<EnrollmentResponse>>> GetEnrollmentCoursesForStudentAsync(string userId, CancellationToken cancellationToken)
     {
         // Check if the user exists
         if (!await _unitOfWork.Repository<ApplicationUser>().AnyAsync(x => x.Id == userId))

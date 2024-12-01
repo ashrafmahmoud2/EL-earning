@@ -1,5 +1,6 @@
 ﻿using ELearning.Data.Abstractions.ResultPattern;
 using Microsoft.AspNetCore.Http;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ELearning.Data.Errors;
 
@@ -12,5 +13,8 @@ public record CoursesErrors
         new("Course.InvalidPermissions", "Invalid permissions", StatusCodes.Status400BadRequest);
 
     public static readonly Error DuplicatedCourse =
-        new("Course.DuplicatedCourse", "Another Course with the same name is already exists", StatusCodes.Status409Conflict);
+        new("Course.DuplicatedCourse", "A course with the same name already exists.", StatusCodes.Status409Conflict);
 }
+
+
+

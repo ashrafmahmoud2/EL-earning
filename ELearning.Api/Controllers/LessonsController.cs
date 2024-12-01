@@ -27,7 +27,7 @@ public class LessonsController(ILessonService LessonService,ICommentService comm
     {
         var lessons = await _LessonService.GetAllLessonsAsync();
 
-        return Ok(lessons);
+        return lessons.IsSuccess ? Ok(lessons.Value) : lessons.ToProblem();
     }
 
     [HttpPost("")]

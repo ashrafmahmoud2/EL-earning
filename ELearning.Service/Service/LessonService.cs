@@ -9,6 +9,7 @@ using ELearning.Data.Contracts.Lesson;
 using ELearning.Data.Errors;
 using ELearning.Data.Contracts.Instrctors;
 using Mailjet.Client.Resources;
+using ELearning.Data.Contracts.Enrollment;
 namespace ELearning.Service.Service;
 
 public class LessonService : BaseRepository<Lesson>, ILessonService
@@ -33,7 +34,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
                                          q => q.Include(x => x.CreatedBy)
                                          .Include(x => x.Section),
                                 cancellationToken);
-       
+
 
         if (lesson is null)
             return Result.Failure<LessonResponse>(LessonsErrors.NotFound);
@@ -43,23 +44,25 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         return Result.Success(lessonResponse);
     }
 
-    public async Task<IEnumerable<LessonResponse>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<LessonResponse>>> GetAllLessonsAsync(CancellationToken cancellationToken = default)
     {
         var cacheKey = "Lessons:GetAll";
 
-       
+
 
         // Check if data is in the cache
         var cachedLessons = await _cacheService.GetCacheAsync<IEnumerable<LessonResponse>>(cacheKey);
 
-        if (cachedLessons != null)
-        {
-            return cachedLessons;
-        }
+        if (cachedLessons.IsSuccess && cachedLessons.Value != null)
+            return Result.Success(cachedLessons.Value);
+
+
+        if (cachedLessons.IsFailure && cachedLessons.Error != CashErrors.NotFound)
+            return Result.Failure<IEnumerable<LessonResponse>>(cachedLessons.Error);
 
 
         var lessons = await _unitOfWork.Repository<Lesson>()
-                                        .FindAsync(x =>  x.IsActive,
+                                        .FindAsync(x => x.IsActive,
                                         q => q.Include(x => x.CreatedBy)
                                         .Include(x => x.Section),
                                cancellationToken);
@@ -72,13 +75,13 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         // Cache the adapted response
         await _cacheService.SetCacheAsync(cacheKey, lessonsResponses, _cacheDuration);
 
-        return lessonsResponses;
+        return Result.Success(lessonsResponses);
     }
 
     public async Task<Result> CreateLessonAsync(LessonRequest request, CancellationToken cancellationToken = default)
     {
 
-        if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId ==request.SectionId))
+        if (!await _unitOfWork.Repository<Section>().AnyAsync(x => x.SectionId == request.SectionId))
             return Result.Failure<LessonResponse>(SectionsErrors.NotFound);
 
         if (await _unitOfWork.Repository<Lesson>().AnyAsync(x => x.Title == request.Title && x.SectionId == request.SectionId))
@@ -87,7 +90,7 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         if (request is null)
             Result.Failure(LessonsErrors.NotFound);
 
-        
+
         var Lesson = request.Adapt<Lesson>();
 
         Lesson.OrderIndex = await GetNextOrderIndexForCourseAsync(Lesson.SectionId, cancellationToken);
@@ -116,9 +119,9 @@ public class LessonService : BaseRepository<Lesson>, ILessonService
         if (lesson is null)
             return Result.Failure<LessonResponse>(LessonsErrors.NotFound);
 
-       lesson.SectionId = request.SectionId;
-       lesson.Title = request.Title;
-       lesson.Description = request.Description;
+        lesson.SectionId = request.SectionId;
+        lesson.Title = request.Title;
+        lesson.Description = request.Description;
 
         await _unitOfWork.Repository<Lesson>().UpdateAsync(lesson, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);

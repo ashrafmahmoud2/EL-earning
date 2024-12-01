@@ -19,6 +19,7 @@ using ELearning.Data.Contracts.Question;
 using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using ELearning.Data.Contracts.Enrollment;
 
 namespace ELearning.Service.Service;
 
@@ -63,12 +64,14 @@ public class CourseService : BaseRepository<Course>, ICourseService
 
 
      
-        // Check if data is in the cache
         var cachedCourses = await _cacheService.GetCacheAsync<PaginatedList<CourseResponse>>(cacheKey);
-        if (cachedCourses != null)
-        {
-            return Result.Success(cachedCourses);
-        }
+       
+        if (cachedCourses.IsSuccess && cachedCourses.Value != null)
+            return Result.Success(cachedCourses.Value);
+
+
+        if (cachedCourses.IsFailure && cachedCourses.Error != CashErrors.NotFound)
+            return Result.Failure<PaginatedList<CourseResponse>>(cachedCourses.Error);
 
         var query =  _unitOfWork.Repository<Course>()
             .Find(

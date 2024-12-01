@@ -20,6 +20,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ELearning.Data.Contracts.Lesson;
+using ELearning.Data.Contracts.Enrollment;
 namespace ELearning.Service.Service;
 
 
@@ -56,17 +57,18 @@ public class StudentService : BaseRepository<Student>, IStudentService
         return Result.Success(studentResponse);
     }
 
-    public async Task<IEnumerable<StudentResponse>> GetAllStudentsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<StudentResponse>>> GetAllStudentsAsync(CancellationToken cancellationToken = default)
     {
         var cacheKey = "Student:GetAll";
 
-        // Check if data is in the cache
-        var cachedStudents = await _cacheService.GetCacheAsync<IEnumerable<StudentResponse>>(cacheKey);
+        var cachedResult = await _cacheService.GetCacheAsync<IEnumerable<StudentResponse>>(cacheKey);
 
-        if (cachedStudents != null)
-        {
-            return cachedStudents;
-        }
+        if (cachedResult.IsSuccess && cachedResult.Value != null)
+            return Result.Success(cachedResult.Value);
+
+
+        if (cachedResult.IsFailure && cachedResult.Error != CashErrors.NotFound)
+            return Result.Failure<IEnumerable<StudentResponse>>(cachedResult.Error);
 
 
         var students = await _unitOfWork.Repository<Student>()
@@ -82,7 +84,7 @@ public class StudentService : BaseRepository<Student>, IStudentService
         // Cache the adapted response
         await _cacheService.SetCacheAsync(cacheKey, studentsResponses, _cacheDuration);
 
-        return studentsResponses;
+        return Result.Success(studentsResponses); 
     }
 
     public async Task<Result> CreateStudentAsync(ApplicationUser user, CancellationToken cancellationToken = default)

@@ -1,11 +1,8 @@
-﻿using ELearning.Service.IService;
+﻿using ELearning.Data.Abstractions.ResultPattern;
+using ELearning.Data.Errors;
+using ELearning.Service.IService;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ELearning.Service.Service;
 
@@ -18,35 +15,67 @@ public class CacheService : ICacheService
         _cache = cache;
     }
 
-    public async Task SetCacheAsync<T>(string key, T data, TimeSpan expiration)
+    public async Task<Result> SetCacheAsync<T>(string key, T data, TimeSpan expiration)
     {
-         if (data == null)
-    {
-        throw new ArgumentNullException(nameof(data), "Cannot cache a null object.");
-    }
-
-        var serializedData = JsonConvert.SerializeObject(data);
-        var options = new DistributedCacheEntryOptions
+        try
         {
-            AbsoluteExpirationRelativeToNow = expiration
-        };
-        await _cache.SetStringAsync(key, serializedData, options);
-    }
+            if (data == null)
+            {
+                return Result.Failure(CashErrors.NullData);
+            }
 
-    public async Task<T> GetCacheAsync<T>(string key)
-    {
-        var cachedData = await _cache.GetStringAsync(key);
-        if (string.IsNullOrEmpty(cachedData))
-        {
-            return default;
+            var serializedData = JsonConvert.SerializeObject(data);
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            };
+
+            await _cache.SetStringAsync(key, serializedData, options);
+            return Result.Success();
         }
-        return JsonConvert.DeserializeObject<T>(cachedData);
+        catch (Exception ex)
+        {
+            // Log exception if necessary
+            return Result.Failure(CashErrors.ErrorConnectingToRedis);
+        }
     }
 
-    public async Task RemoveCacheAsync(string key)
+    public async Task<Result<T>> GetCacheAsync<T>(string key)
     {
-        await _cache.RemoveAsync(key);
+        try
+        {
+            var cachedData = await _cache.GetStringAsync(key);
+            if (string.IsNullOrEmpty(cachedData))
+            {
+                return Result.Failure<T>(CashErrors.NotFound);
+            }
+
+            var deserializedData = JsonConvert.DeserializeObject<T>(cachedData);
+            if (deserializedData == null)
+            {
+                return Result.Failure<T>(CashErrors.DeserializationFailed);
+            }
+
+            return Result.Success(deserializedData);
+        }
+        catch (Exception ex)
+        {
+            // Log exception if necessary
+            return Result.Failure<T>(CashErrors.ErrorConnectingToRedis);
+        }
     }
 
+    public async Task<Result> RemoveCacheAsync(string key)
+    {
+        try
+        {
+            await _cache.RemoveAsync(key);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            // Log exception if necessary
+            return Result.Failure(CashErrors.ErrorConnectingToRedis);
+        }
+    }
 }
-

@@ -30,7 +30,7 @@ public class QuizAttemptsController(IQuizAttemptService QuizAttemptService) : Co
     {
         var quizAttempts = await _QuizAttemptService.GetAllQuizAttemptsAsync();
 
-        return Ok(quizAttempts);
+        return quizAttempts.IsSuccess ? Ok(quizAttempts.Value) : quizAttempts.ToProblem();
     }
 
 

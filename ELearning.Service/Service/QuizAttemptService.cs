@@ -9,6 +9,7 @@ using ELearning.Data.Contracts.QuizAttempt;
 using ELearning.Data.Errors;
 using ELearning.Data.Contracts.Quiz;
 using ELearning.Data.Contracts.Lesson;
+using ELearning.Data.Contracts.Enrollment;
 namespace ELearning.Service.Service;
 
 public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptService
@@ -43,7 +44,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         return Result.Success(quizAttempt.Adapt<QuizAttemptResponse>());
     }
 
-    public async Task<IEnumerable<QuizAttemptResponse>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<QuizAttemptResponse>>> GetAllQuizAttemptsAsync(CancellationToken cancellationToken = default)
     {
         var cacheKey = "QuizAttempt:GetAll";
 
@@ -51,10 +52,14 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
 
         var cachedQuizAttempts = await _cacheService.GetCacheAsync<IEnumerable<QuizAttemptResponse>>(cacheKey);
 
-        if (cachedQuizAttempts != null)
-        {
-            return cachedQuizAttempts;
-        }
+       
+        if (cachedQuizAttempts.IsSuccess && cachedQuizAttempts.Value != null)
+            return Result.Success(cachedQuizAttempts.Value);
+
+
+        if (cachedQuizAttempts.IsFailure && cachedQuizAttempts.Error != CashErrors.NotFound)
+            return Result.Failure<IEnumerable<QuizAttemptResponse>>(cachedQuizAttempts.Error);
+
         var quizAttempts = await _unitOfWork.Repository<QuizAttempt>()
                                      .FindAsync(
                                       s => s.IsActive,
@@ -70,7 +75,7 @@ public class QuizAttemptService : BaseRepository<QuizAttempt>, IQuizAttemptServi
         // Cache the adapted response
         await _cacheService.SetCacheAsync(cacheKey, quizAttemptsResponses, _cacheDuration);
 
-        return quizAttemptsResponses;
+        return Result.Success( quizAttemptsResponses);
     }
 
     public async Task<Result> CreateQuizAttemptAsync(QuizAttemptRequest request, CancellationToken cancellationToken = default)

@@ -44,7 +44,7 @@ public class EnrollmentsController : ControllerBase
     public async Task<IActionResult> GetAllEnrollments()
     {
         var enrollment = await _enrollmentService.GetAllEnrollmentsAsync();
-        return Ok(enrollment);
+        return enrollment.IsSuccess ? Ok(enrollment.Value) : enrollment.ToProblem() ;
     }
 
     [HttpPost("")]

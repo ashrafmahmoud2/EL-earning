@@ -12,6 +12,7 @@ using ELearning.Data.Contracts.Instrctors;
 using ELearning.Data.Contracts.Comment;
 using Mailjet.Client.Resources;
 using System.Xml.Linq;
+using ELearning.Data.Contracts.Enrollment;
 namespace ELearning.Service.Service;
 
 public class InstructorService : BaseRepository<Instructor>, IInstructorService
@@ -30,19 +31,18 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         _cacheService = cacheService;
     }
 
-    public async Task<IEnumerable<InstructorResponse>> GetAllInstructorsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<InstructorResponse>>> GetAllInstructorsAsync(CancellationToken cancellationToken = default)
     {
         var cacheKey = "Instructors:GetAll";
 
-       
-
-        // Check if data is in the cache
         var cachedInstructors = await _cacheService.GetCacheAsync<IEnumerable<InstructorResponse>>(cacheKey);
 
-        if (cachedInstructors != null)
-        {
-            return cachedInstructors;
-        }
+        if (cachedInstructors.IsSuccess && cachedInstructors.Value != null)
+            return Result.Success(cachedInstructors.Value);
+
+
+        if (cachedInstructors.IsFailure && cachedInstructors.Error != CashErrors.NotFound)
+            return Result.Failure<IEnumerable<InstructorResponse>>(cachedInstructors.Error);
 
         // Retrieve instructors from the database
         var instructors = await _unitOfWork.Repository<Instructor>()
@@ -59,7 +59,7 @@ public class InstructorService : BaseRepository<Instructor>, IInstructorService
         // Cache the adapted response
         await _cacheService.SetCacheAsync(cacheKey, instructorResponses, _cacheDuration);
 
-        return instructorResponses;
+        return Result.Success(instructorResponses); 
     }
 
 
