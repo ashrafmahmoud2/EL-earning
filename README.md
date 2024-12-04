@@ -14,7 +14,7 @@
 - **Role-Based Authorization**: 🚪 To restrict access to specific resources or actions based on assigned roles.
 
 ### 📐 Patterns
-- **CORS with MediatR**: 🌐 To handle cross-origin requests and mediate communication between layers.
+- **CQRS** (Command Query Responsibility Segregation) with MediatR 🌐.
 - **Dependency Injection**: 🧩 For managing service lifetimes and enhancing testability.
 - **Options Pattern**: ⚙️ For binding and managing configuration settings.
 - **Result Pattern**: ✅ For consistent error handling and operation result representation.
