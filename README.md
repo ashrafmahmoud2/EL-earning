@@ -130,3 +130,50 @@
 - ✏️ **Update Document**: Modify an existing document (admin/instructor access).
 - ⚙️ **Toggle Document Status**: Toggle document status (admin/instructor access).
 
+### **Section Management**
+- 🛠️ **Get Section by ID**: Retrieve a section by its unique ID (Admin/Instructor access).
+- 📜 **Get All Sections**: Retrieve all sections (Admin/Instructor access).
+- 📚 **Get All Sections with Lessons**: Retrieve all sections along with their lessons (Admin/Instructor access).
+- ➕ **Create Section**: Add a new section (Admin access).
+- ✏️ **Update Section**: Update an existing section's details (Admin/Instructor access).
+- 🔄 **Toggle Section Status**: Activate or deactivate a section's status (Admin access).
+
+### **Quiz Management**
+- 🛠️ **Get Quiz by ID**: Retrieve a quiz by its unique ID.
+- 📜 **Get All Quizzes**: Retrieve all quizzes.
+- ➕ **Create Quiz**: Add a new quiz (Admin/Instructor access).
+- ✏️ **Update Quiz**: Update an existing quiz's details (Admin/Instructor access).
+- 🔄 **Toggle Quiz Status**: Activate or deactivate a quiz's status (Admin/Instructor access).
+
+### **Quiz Attempt Management**
+- 🛠️ **Get Quiz Attempt by ID**: Retrieve a quiz attempt by its unique ID.
+- 📜 **Get All Quiz Attempts**: Fetch all quiz attempts (Admin/Instructor access).
+- ➕ **Create Quiz Attempt**: Record a new quiz attempt.
+- ✏️ **Update Quiz Attempt**: Update an existing quiz attempt's details.
+- 🔄 **Toggle Quiz Attempt Status**: Activate or deactivate a quiz attempt's status (Admin/Instructor access).
+
+### **Question Management**
+- 🛠️ **Get Question by ID**: Retrieve a specific question by its ID.
+- 📜 **Get All Questions**: Fetch all questions available.
+- ➕ **Create Question**: Add a new question (Admin/Instructor access).
+- ✏️ **Update Question**: Modify an existing question (Admin/Instructor access).
+- 🔄 **Toggle Question Status**: Change the status of a question (Admin/Instructor access).
+
+
+### **Answer Management**
+- 🛠️ **Get Answer by ID**: Retrieve a specific answer by its ID.
+- 📜 **Get All Answers**: Fetch all available answers.
+- ➕ **Create Answer**: Add a new answer (Admin/Instructor access).
+- ✏️ **Update Answer**: Modify an existing answer (Admin/Instructor access).
+- 🔄 **Toggle Answer Status**: Change the status of an answer (Admin/Instructor access).
+- ❌ **Delete Answer**: Remove an answer (Admin/Instructor access).
+
+### **Enrollment Management**
+- 🛠️ **Get Enrollment by ID**: Retrieve a specific enrollment by its ID (Student role).
+- 📜 **Get All Enrollments**: Fetch all available enrollments.
+- ➕ **Create Enrollment**: Add a new enrollment (Admin access).
+- ✏️ **Update Enrollment**: Modify an existing enrollment (Admin access).
+- 🔄 **Refund Payment**: Process a payment refund for an enrollment (Admin access).
+- 🔄 **Change Enrollment Owner**: Transfer ownership of an enrollment (Admin access).
+- 🔄 **Replace with New Course**: Replace an enrollment with a new course (Admin access).
+
