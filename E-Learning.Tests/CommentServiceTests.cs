@@ -11,7 +11,6 @@ using ELearning.Service.IService;
 using ELearning.Service.Service;
 using FakeItEasy;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Caching.Hybrid;
 using Xunit;
@@ -491,5 +490,3 @@ public class CommentServiceTests
 
 
     }
-
-
