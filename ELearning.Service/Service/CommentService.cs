@@ -121,7 +121,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
                                          ,cancellationToken);
 
         if (Comment is null)
-            return Result.Failure<CommentResponse>(CommentsErrors.NotFound);
+            return Result.Failure<CommentResponse>(CommentErrors.CommentNotFound);
 
 
         Comment.IsEdited = true;
@@ -158,7 +158,7 @@ public class CommentService : BaseRepository<Comment>, ICommentService
 
     public async Task<Result<int>> CountCommentsForLesson(Guid lessonId, CancellationToken cancellationToken = default)
     {
-        var count = await _context.Comments
+         var count = await _context.Comments
             .Where(x => x.LessonId == lessonId)
             .CountAsync();
 

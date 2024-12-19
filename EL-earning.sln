@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELearning.Infrastructure", 
 		{881883F2-7D68-4E5E-99C2-A1CFC3DE16F0} = {881883F2-7D68-4E5E-99C2-A1CFC3DE16F0}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E-Learning.Tests", "E-Learning.Tests\E-Learning.Tests.csproj", "{9BA1581C-63F2-484B-9F1D-E4E33FED8794}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{DE6770EA-670E-4148-B371-543026CDCF30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE6770EA-670E-4148-B371-543026CDCF30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE6770EA-670E-4148-B371-543026CDCF30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BA1581C-63F2-484B-9F1D-E4E33FED8794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BA1581C-63F2-484B-9F1D-E4E33FED8794}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BA1581C-63F2-484B-9F1D-E4E33FED8794}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BA1581C-63F2-484B-9F1D-E4E33FED8794}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

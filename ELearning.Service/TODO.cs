@@ -1,8 +1,11 @@
 ﻿/*
 |:::::::::::::|NEED TO DO|:::::::::::::|
 - Put Docker in prject;
-- Handel Golale Using;
-- make  swagger ui Documantion
+- Unite testing 
+- Redise videos
+- Working With Files [Bonus] in Api project
+- 50 Q In 500Q&A FROM PDF
+
 
 
 
